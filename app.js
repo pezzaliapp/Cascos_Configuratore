@@ -1,13 +1,14 @@
-// app.js — v5 (multilingua + bracci + share + csv + pdf multiplo + salva JSON)
+// app.js — v5 (multilingua + bracci min/max + share + CSV + PDF multiplo + salva JSON + mappa pagine PDF + PWA)
 (function () {
   'use strict';
 
-  // -------- util -------
+  // ------------------ helpers ------------------
   const $ = (s) => document.querySelector(s);
   const fmt = (x, unit = '') =>
-    (x == null ? '-' : x.toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'it-IT')) + (unit ? ' ' + unit : '');
+    (x == null ? '-' : x.toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'it-IT')) +
+    (unit ? ' ' + unit : '');
 
-  // -------- PDF paths -------
+  // ------------------ PDF paths + PAGE MAP ------------------
   const PDF = {
     withbase: './docs/scheda_con_pedana.pdf',
     baseless: './docs/scheda_senza_pedana_2022.pdf',
@@ -15,7 +16,39 @@
     fondazioni: './docs/fondazioni_cascos_c4c.pdf'
   };
 
-  // -------- i18n -------
+  // Mappa "modello -> pagina" all’interno dei PDF consolidati.
+  // Compila i numeri reali quando li conosci. Se un valore resta null,
+  // useremo un fallback con "#search=<modello>" per trovare la pagina.
+  const SHEET_PAGES = {
+    withbase: {
+      'C3.2': 1,
+      'C3.5': null,
+      'C4': null,
+      'C4XL': null,
+      'C5': null,
+      'C5.5': null,
+      'C5 WAGON': null
+    },
+    baseless: {
+      'C3.2S': null,
+      'C3.5S': null,
+      'C4S': null,
+      'C5.5S': null
+    }
+  };
+
+  function buildSheetUrl(modelId, baseKind /* 'withbase' | 'baseless' */) {
+    const pdf = baseKind === 'withbase' ? PDF.withbase : PDF.baseless;
+    const page =
+      (SHEET_PAGES[baseKind] && SHEET_PAGES[baseKind][modelId]) != null
+        ? SHEET_PAGES[baseKind][modelId]
+        : null;
+    if (page && Number.isInteger(page)) return `${pdf}#page=${page}`;
+    const q = encodeURIComponent(modelId.replace(/\s+/g, ' '));
+    return `${pdf}#search=${q}`; // fallback: evidenzia il modello
+  }
+
+  // ------------------ i18n ------------------
   const I18N = {
     it: {
       title: '🔧 CASCOS — Configuratore Sollevatori 2 Colonne',
@@ -249,21 +282,22 @@
   }
   $('#langSel')?.addEventListener('change', (e) => applyLang(e.target.value));
 
-  // -------- dataset -------
+  // ------------------ dataset ------------------
   let MODELS = [];
   fetch('./models.json').then(r => r.json()).then(d => { MODELS = d; applyLang('it'); });
 
-  // -------- logic -------
+  // ------------------ logic ------------------
   const rows = $('#rows'), warnings = $('#warnings');
 
-  function issuesFor(m, L) {
+  function issuesFor(m) {
+    const L = I18N[document.documentElement.lang] || I18N.it;
     const H = +($('#inpH').value || 0), W = +($('#inpW').value || 0), T = +($('#inpThickness').value || 0);
     const conc = $('#inpConcrete').value, pw = $('#inpPower').value;
     const arr = [];
-    if (H && m.h_sotto_traversa && H < (m.h_sotto_traversa - 200)) arr.push({ t: (L === I18N.en ? 'Low ceiling' : 'Soffitto basso') + ` (< ${m.h_sotto_traversa - 200} mm)`, cls: 'warn' });
-    if (W && m.larghezza && W < m.larghezza) arr.push({ t: (L === I18N.en ? 'Narrow bay' : 'Baia stretta') + ` (min ${m.larghezza} mm)`, cls: 'bad' });
-    if (pw && !(m.power || []).includes(pw)) arr.push({ t: (L === I18N.en ? 'Power not supported' : 'Alimentazione non prevista') + ` (${pw})`, cls: 'warn' });
-    if (T && T < (m.anchors?.thickness_min_mm || 170)) arr.push({ t: (I18N[document.documentElement.lang] || I18N.it).warn_slab, cls: 'bad' });
+    if (H && m.h_sotto_traversa && H < (m.h_sotto_traversa - 200)) arr.push({ t: 'Soffitto basso', cls: 'warn' });
+    if (W && m.larghezza && W < m.larghezza) arr.push({ t: 'Baia stretta', cls: 'bad' });
+    if (pw && !(m.power || []).includes(pw)) arr.push({ t: 'Alimentazione non prevista', cls: 'warn' });
+    if (T && T < (m.anchors?.thickness_min_mm || 170)) arr.push({ t: L.warn_slab, cls: 'bad' });
     if (conc && m.anchors && conc !== 'unknown' && conc !== m.anchors.concrete) arr.push({ t: `${m.anchors.concrete}`, cls: 'warn' });
     return arr;
   }
@@ -289,10 +323,10 @@
     const L = I18N[document.documentElement.lang] || I18N.it;
     rows.innerHTML = '';
     list.forEach(m => {
-      const issues = issuesFor(m, L);
+      const issues = issuesFor(m);
       const tr = document.createElement('tr');
       const isWithBase = m.base === 'withbase';
-      const schedaUrl = isWithBase ? PDF.withbase : PDF.baseless;
+      const schedaUrl = buildSheetUrl(m.id, isWithBase ? 'withbase' : 'baseless');
       const arms = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '–')}–${(m.arms.max_mm ?? '–')} mm` : '–';
       const baseChip = `<div class="tag" style="margin-top:4px">${isWithBase ? L.withbase : L.baseless}</div>`;
       tr.innerHTML = `
@@ -321,7 +355,7 @@
     });
   }
 
-  // -------- actions -------
+  // ------------------ actions ------------------
   function selectedIds() { return Array.from(document.querySelectorAll('.pick:checked')).map(i => i.dataset.id); }
   function buildQuery(extras) {
     const p = new URLSearchParams(); const set = (k, v) => { if (v != null && v !== '') p.set(k, v); };
@@ -356,15 +390,15 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(list)], { type: 'text/csv' })); a.download = 'cascos_modelli.csv'; a.click();
   });
 
-  // PDF multiplo (apre una scheda per ogni modello selezionato; se nessuna selezione, usa i primi consigliati)
+  // PDF multiplo
   $('#pdfMultiBtn')?.addEventListener('click', () => {
     const ids = selectedIds();
     const list = ids.length ? MODELS.filter(m => ids.includes(m.id)) : makeFiltered().slice(0, 10);
     const L = I18N[document.documentElement.lang] || I18N.it;
-    list.forEach((m, i) => setTimeout(() => openSheet(m, L, true), i * 200)); // scagliono per evitare blocchi popup
+    list.forEach((m, i) => setTimeout(() => openSheet(m, L, true), i * 200));
   });
 
-  // Salva configurazione (JSON degli input)
+  // Salva configurazione (JSON)
   $('#saveBtn')?.addEventListener('click', () => {
     const payload = {
       timestamp: new Date().toISOString(),
@@ -394,7 +428,7 @@ h1{font-size:18px;margin:0 0 8px 0}
 table{width:100%;border-collapse:collapse;margin-top:6px}
 td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
     const arms = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '–')}–${(m.arms.max_mm ?? '–')} mm` : '–';
-    const schedaUrl = (m.base === 'withbase') ? PDF.withbase : PDF.baseless;
+    const schedaUrl = buildSheetUrl(m.id, m.base === 'withbase' ? 'withbase' : 'baseless');
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${m.id} — CASCOS</title><style>${css}</style></head><body>
 <h1>${m.id} — CASCOS</h1>
 <table>
@@ -417,7 +451,7 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
     const w = window.open('', '_blank'); w.document.write(html); w.document.close();
   }
 
-  // -------- events -------
+  // ------------------ events ------------------
   function calculate() {
     const L = I18N[document.documentElement.lang] || I18N.it;
     warnings.innerHTML = '';
@@ -430,10 +464,11 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
   $('#calcBtn')?.addEventListener('click', calculate);
   $('#resetBtn')?.addEventListener('click', () => { document.querySelectorAll('input').forEach(i => i.value = ''); calculate(); });
 
-  // -------- PWA install + SW -------
+  // ------------------ PWA ------------------
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault(); deferredPrompt = e; const b = $('#installBtn'); if (b) { b.hidden = false; b.onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; b.hidden = true; } }; }
+    e.preventDefault(); deferredPrompt = e;
+    const b = $('#installBtn'); if (b) { b.hidden = false; b.onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; b.hidden = true; } }; }
   });
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
 
