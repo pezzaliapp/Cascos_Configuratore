@@ -35,7 +35,7 @@
     .hint{font-size:12px;color:var(--muted)}
     .tag{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px;margin-right:6px;color:var(--muted)}
     .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
-    table{width:100%;border-collapse:collapse;min-width:720px}
+    table{width:100%;border-collapse:collapse;min-width:920px}
     th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:var(--muted);font-weight:600}
     .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
@@ -72,6 +72,7 @@
   </header>
 
   <main class="wrap grid" id="app">
+    <!-- 1) Vincoli officina -->
     <section class="card">
       <div class="inner">
         <h2 id="t_sec1">1) Vincoli dell’officina</h2>
@@ -123,20 +124,28 @@
       </div>
     </section>
 
+    <!-- 2) Veicolo -->
     <section class="card">
       <div class="inner">
         <h2 id="t_sec2">2) Veicolo tipo da sollevare</h2>
+
+        <!-- nuovo: selettore tipo veicolo -->
         <div class="row">
+          <div>
+            <label id="t_secVeh" for="vehicleSel">Tipo di veicolo</label>
+            <select id="vehicleSel"></select>
+          </div>
           <div>
             <label id="t_gvw">Peso veicolo (kg)</label>
             <input type="number" id="inpGVW" placeholder="es. 2200" min="600" step="10">
           </div>
+        </div>
+
+        <div class="row">
           <div>
             <label id="t_wb">Passo (mm) / ingombro</label>
             <input type="number" id="inpWB" placeholder="es. 2900" min="1800" step="10">
           </div>
-        </div>
-        <div class="row">
           <div>
             <label id="t_use">Uso</label>
             <select id="inpUse">
@@ -145,6 +154,9 @@
               <option value="mpv">MPV / crossover</option>
             </select>
           </div>
+        </div>
+
+        <div class="row">
           <div>
             <label id="t_duty">Frequenza cicli/h</label>
             <select id="inpDuty">
@@ -152,7 +164,9 @@
               <option value="10">Intensivo (≥10 mov/h)</option>
             </select>
           </div>
+          <div></div>
         </div>
+
         <div style="margin-top:12px">
           <button class="btn primary" id="calcBtn">⚙️ <span id="t_calc">Calcola suggerimenti</span></button>
           <button class="btn" id="resetBtn">↺ <span id="t_reset">Reset</span></button>
@@ -160,6 +174,7 @@
       </div>
     </section>
 
+    <!-- 3) Risultati -->
     <section class="card" style="grid-column:1/-1">
       <div class="inner">
         <h2 id="t_sec3">3) Risultati e modelli consigliati</h2>
@@ -168,23 +183,34 @@
           <table id="tbl">
             <thead>
               <tr>
-                <th>Modello</th><th>Portata</th><th>Interasse<br>(mm)</th><th>Larghezza tot.<br>(mm)</th>
-                <th>Altezza utile<br>sotto traversa (mm)</th><th>Alimentazione</th><th>Anc. / Spessore<br>soletta</th><th>Note</th><th>Sel.</th>
+                <th id="t_th_model">Modello</th>
+                <th id="t_th_cap">Portata</th>
+                <th id="t_th_inter">Interasse<br>(mm)</th>
+                <th id="t_th_width">Larghezza tot.<br>(mm)</th>
+                <th id="t_th_height">Altezza utile<br>sotto traversa (mm)</th>
+                <th id="t_th_power">Alimentazione</th>
+                <th id="t_th_anchor">Anc. / Spessore<br>soletta</th>
+                <th id="t_th_arms">Bracci</th>
+                <th id="t_th_notes">Note</th>
+                <th>Sel.</th>
               </tr>
             </thead>
             <tbody id="rows"></tbody>
           </table>
         </div>
-        <div class="hint" style="margin-top:8px">I dati sono indicativi e non sostituiscono il manuale e la verifica del cantiere. Consulta sempre le istruzioni ufficiali CASCOS.</div>
+        <div class="hint" style="margin-top:8px">
+          I dati sono indicativi e non sostituiscono il manuale e la verifica del cantiere. Consulta sempre le istruzioni ufficiali CASCOS.
+        </div>
       </div>
     </section>
 
+    <!-- 4) Documenti -->
     <section class="card">
       <div class="inner">
         <h2>4) Documenti utili</h2>
         <ul style="margin:0;padding-left:18px">
           <li><a id="lnkFondazioni" href="./docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">Schema fondazioni (C5/C5.5)</a></li>
-          <li><a id="lnkManuale" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">Manuale tecnico (multi‑lingua)</a></li>
+          <li><a id="lnkManuale" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">Manuale tecnico (multi-lingua)</a></li>
           <li><a id="lnkPedana" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">Versioni con pedana</a></li>
           <li><a id="lnkSenzaPedana" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">Versioni senza pedana</a></li>
         </ul>
@@ -192,7 +218,7 @@
     </section>
   </main>
 
-  <footer class="wrap"><div>© Cascos_Configuratore — PWA open‑source.</div></footer>
+  <footer class="wrap"><div>© Cascos_Configuratore — PWA open-source.</div></footer>
   <script src="./app.js"></script>
 </body>
 </html>
