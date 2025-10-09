@@ -8,11 +8,8 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon-192.png">
   <style>
-    :root{
-      --bg:#0b1022; --card:#111735; --ink:#eef2ff; --muted:#9fb0d9; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --line:#1d2a55; --focus:#2dd4bf;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    :root{ --bg:#0b1022; --card:#111735; --ink:#eef2ff; --muted:#9fb0d9; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --line:#1d2a55; --focus:#2dd4bf; }
+    *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#0f1b44,#0b1022);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
     header{position:sticky;top:0;z-index:10;background:#0c1430cc;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
     .wrap{max-width:1100px;margin:0 auto;padding:18px}
@@ -26,7 +23,7 @@
     input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0e1634;color:var(--ink);outline:none}
     input:focus,select:focus{border-color:var(--focus);box-shadow:0 0 0 3px #2dd4bf33}
     .row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
-    .btn{display:inline-flex;align-items:center;gap:8px;background:#0e193f;border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:var(--ink);cursor:pointer}
+    .btn{display:inline-flex;align-items:center;gap:8px;background:#0e193f;border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:var(--ink);cursor:pointer;text-decoration:none}
     .btn:hover{border-color:var(--focus)}
     .btn.primary{background:linear-gradient(180deg,#1a285e,#132454);border-color:#243b7a}
     .hint{font-size:12px;color:var(--muted)}
@@ -46,7 +43,7 @@
       <h1>🔧 CASCOS — Configuratore Sollevatori 2 Colonne</h1>
       <nav style="display:flex;gap:8px">
         <button class="btn" id="saveBtn" title="Esporta configurazione">💾 Salva</button>
-        <a class="btn" href="readme.html" target="_blank" rel="noopener">📖 Leggimi</a>
+        <a class="btn" href="./README.html" target="_blank" rel="noopener">📖 Leggimi</a>
         <button class="btn" id="installBtn" hidden>➕ Installa</button>
       </nav>
     </div>
@@ -168,9 +165,9 @@
       <div class="inner">
         <h2>4) Documenti utili</h2>
         <ul style="margin:0;padding-left:18px">
-          <li><a href="#" id="lnkFondazioni">Schema fondazioni (C5/C5.5)</a></li>
-          <li><a href="#" id="lnkManuale">Manuale tecnico (multi‑lingua)</a></li>
-          <li><a href="#" id="lnkPedana">Versioni con pedana</a></li>
+          <li><a id="lnkFondazioni" href="./docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">Schema fondazioni (C5/C5.5)</a></li>
+          <li><a id="lnkManuale" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">Manuale tecnico (multi‑lingua)</a></li>
+          <li><a id="lnkPedana" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">Versioni con pedana</a></li>
         </ul>
       </div>
     </section>
