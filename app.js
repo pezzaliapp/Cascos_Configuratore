@@ -8,46 +8,41 @@
     (x == null ? '-' : x.toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'it-IT')) +
     (unit ? ' ' + unit : '');
 
-  // ------------------ PDF paths + PAGE MAP ------------------
-  const PDF = {
-    withbase: './docs/scheda_con_pedana.pdf',
-    baseless: './docs/scheda_senza_pedana_2022.pdf',
-    manuale: './docs/manuale_tecnico_presentazione.pdf',
-    fondazioni: './docs/fondazioni_cascos_c4c.pdf'
-  };
+ // ------------------ PDF paths + FILE MAP ------------------
+const PDF = {
+  withbase: './docs/scheda_con_pedana.pdf',
+  baseless: './docs/scheda_senza_pedana_2022.pdf',
+  manuale: './docs/manuale_tecnico_presentazione.pdf',
+  fondazioni: './docs/fondazioni_cascos_c4c.pdf'
+};
 
-  // Mappa "modello -> pagina" all’interno dei PDF consolidati.
-  // Compila i numeri reali quando li conosci. Se un valore resta null,
-  // useremo un fallback con "#search=<modello>" per trovare la pagina.
-  const SHEET_PAGES = {
-    withbase: {
-      'C3.2': 1,
-      'C3.5': null,
-      'C4': null,
-      'C4XL': null,
-      'C5': null,
-      'C5.5': null,
-      'C5 WAGON': null
-    },
-    baseless: {
-      'C3.2S': null,
-      'C3.5S': null,
-      'C4S': null,
-      'C5.5S': null
-    }
-  };
-
-  function buildSheetUrl(modelId, baseKind /* 'withbase' | 'baseless' */) {
-    const pdf = baseKind === 'withbase' ? PDF.withbase : PDF.baseless;
-    const page =
-      (SHEET_PAGES[baseKind] && SHEET_PAGES[baseKind][modelId]) != null
-        ? SHEET_PAGES[baseKind][modelId]
-        : null;
-    if (page && Number.isInteger(page)) return `${pdf}#page=${page}`;
-    const q = encodeURIComponent(modelId.replace(/\s+/g, ' '));
-    return `${pdf}#search=${q}`; // fallback: evidenzia il modello
+// 🔗 Mappa diretta “modello → file PDF dedicato”
+// (inserisci i PDF generati nello zip in ./docs/)
+const SHEET_FILES = {
+  withbase: {
+    "C3.2": "./docs/scheda_C3.2_con_pedana.pdf",
+    "C3.5": "./docs/scheda_C3.5_con_pedana.pdf",
+    "C4": "./docs/scheda_C4_con_pedana.pdf",
+    "C4XL": "./docs/scheda_C4XL_con_pedana.pdf",
+    "C5": "./docs/scheda_C5_con_pedana.pdf",
+    "C5.5": "./docs/scheda_C5.5_con_pedana.pdf",
+    "C5 WAGON": "./docs/scheda_C5_WAGON_con_pedana.pdf"
+  },
+  baseless: {
+    "C3.2S": "./docs/scheda_C3.2S_senza_pedana.pdf",
+    "C3.5S": "./docs/scheda_C3.5S_senza_pedana.pdf",
+    "C4S": "./docs/scheda_C4S_senza_pedana.pdf",
+    "C5.5S": "./docs/scheda_C5.5S_senza_pedana.pdf"
   }
+};
 
+// ✅ Costruttore URL: apre PDF singolo se disponibile, fallback al PDF unico con ricerca
+function buildSheetUrl(modelId, baseKind /* 'withbase' | 'baseless' */) {
+  const file = SHEET_FILES[baseKind] && SHEET_FILES[baseKind][modelId];
+  if (file) return file; // iPhone-friendly
+  const pdf = baseKind === 'withbase' ? PDF.withbase : PDF.baseless;
+  return `${pdf}#search=${encodeURIComponent(modelId)}`;
+}
   // ------------------ i18n ------------------
   const I18N = {
     it: {
