@@ -1,4 +1,4 @@
-// app.js — v6.2 (Vehicle filter + auto-fill + per-model PDFs "Misure bracci" + page map + i18n + share/csv/pdf/save + PWA)
+// app.js — v6.3 (Vehicle filter + auto-fill + per-model PDFs "Misure bracci" + page map + i18n + share/csv/pdf/save + PWA)
 (function () {
   'use strict';
 
@@ -24,23 +24,22 @@
     "C3.2": "./docs/misure/misure_C3_2.pdf",
     "C3.2 Comfort": "./docs/misure/misure_C3_2_Comfort.pdf",
     "C3.5": "./docs/misure/misure_C3_5.pdf",
-    "C3.5XL": "./docs/misure/misure_C3_5XL.pdf",           // da aggiungere in repo
-    "C4": "./docs/misure/misure_C4.pdf",                   // da aggiungere in repo
-    "C4XL": "./docs/misure/misure_C4XL.pdf",               // da aggiungere in repo
-    "C5": "./docs/misure/misure_C5.pdf",                   // da aggiungere in repo
-    "C5.5": "./docs/misure/misure_C5_5.pdf",               // da aggiungere in repo
-    "C5 WAGON": "./docs/misure/misure_C5_WAGON.pdf",       // da aggiungere in repo
-    "C5.5 WAGON": "./docs/misure/misure_C5_5_WAGON.pdf",   // da aggiungere in repo
+    "C3.5XL": "./docs/misure/misure_C3_5XL.pdf",         // TODO: aggiungere file
+    "C4": "./docs/misure/misure_C4.pdf",                 // TODO: aggiungere file
+    "C4XL": "./docs/misure/misure_C4XL.pdf",             // TODO: aggiungere file
+    "C5": "./docs/misure/misure_C5.pdf",                 // TODO: aggiungere file
+    "C5.5": "./docs/misure/misure_C5_5.pdf",             // TODO: aggiungere file
+    "C5 WAGON": "./docs/misure/misure_C5_WAGON.pdf",     // TODO: aggiungere file
+    "C5.5 WAGON": "./docs/misure/misure_C5_5_WAGON.pdf", // TODO: aggiungere file
     // Senza basamento / sbalzo libero
-    "C3.2S": "./docs/misure/misure_C3_2S.pdf",             // da aggiungere in repo
-    "C3.5S": "./docs/misure/misure_C3_5S.pdf",             // da aggiungere in repo
-    "C4S": "./docs/misure/misure_C4S.pdf",                 // da aggiungere in repo
-    "C5.5S": "./docs/misure/misure_C5_5S.pdf"              // da aggiungere in repo
+    "C3.2S": "./docs/misure/misure_C3_2S.pdf",           // TODO: aggiungere file
+    "C3.5S": "./docs/misure/misure_C3_5S.pdf",           // TODO: aggiungere file
+    "C4S": "./docs/misure/misure_C4S.pdf",               // TODO: aggiungere file
+    "C5.5S": "./docs/misure/misure_C5_5S.pdf"            // TODO: aggiungere file
   };
 
-  // 📖 Pagine nel Manuale dove compaiono le tavole “bracci” (fallback se il PDF singolo manca)
-  // Note certe (dal manuale che mi hai inviato): C3.2 = pag.7–8, C3.2 Comfort = pag.13–14, C3.5 = pag.19–20
-  // Metto la “prima pagina” del blocco (quella col min/max). Le altre sono da validare => null.
+  // 📖 Pagine nel Manuale per le tavole “bracci” (fallback se non c’è il PDF singolo).
+  // Certe: C3.2 = 7, C3.2 Comfort = 13, C3.5 = 19. Le altre rimangono a ricerca (#search).
   const ARMS_PAGES = {
     "C3.2": 7,
     "C3.2 Comfort": 13,
