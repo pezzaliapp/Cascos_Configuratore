@@ -1,89 +1,74 @@
-// app.js — v6 (Vehicle filter + per-model PDFs + manual page map + i18n + share/csv/pdf/save + PWA)
+// app.js — v6.1 (multilingua + bracci + share + CSV + PDF multiplo + salva JSON
+// + mappa pagine PDF + PWA + auto-precompilazione parametri da “Tipo di veicolo”)
 (function () {
   'use strict';
 
   // ------------------ helpers ------------------
   const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const num = (v) => (v == null || v === '' ? null : Number(v));
   const fmt = (x, unit = '') =>
-    (x == null ? '-' : x.toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'it-IT')) +
+    (x == null || x === '' ? '-' :
+      Number(x).toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'it-IT')) +
     (unit ? ' ' + unit : '');
 
   // ------------------ PDF paths ------------------
   const PDF = {
-    // PDF “globali” (rimangono come fallback)
     withbase: './docs/scheda_con_pedana.pdf',
     baseless: './docs/scheda_senza_pedana_2022.pdf',
     manuale: './docs/manuale_tecnico_presentazione.pdf',
     fondazioni: './docs/fondazioni_cascos_c4c.pdf'
   };
 
-  // 🔗 Mappa diretta “modello → file PDF dedicato”
-  // (carica i PDF generati in ./docs/ come fatto nello zip split)
-  const SHEET_FILES = {
+  // Mappa "modello -> pagina" nei PDF consolidati (quando la pagina è nota).
+  // Dove non nota = fallback con #search=<modello>.
+  const SHEET_PAGES = {
     withbase: {
-      "C3.2": "./docs/scheda_C3.2_con_pedana.pdf",
-      "C3.5": "./docs/scheda_C3.5_con_pedana.pdf",
-      "C4": "./docs/scheda_C4_con_pedana.pdf",
-      "C4XL": "./docs/scheda_C4XL_con_pedana.pdf",
-      "C5": "./docs/scheda_C5_con_pedana.pdf",
-      "C5.5": "./docs/scheda_C5.5_con_pedana.pdf",
-      "C5 WAGON": "./docs/scheda_C5_WAGON_con_pedana.pdf"
+      'C3.2': 1,          // esiste indice sulla 1
+      'C3.2 Comfort': null,
+      'C3.5': null,
+      'C3.5XL': null,
+      'C4': null,
+      'C4XL': null,
+      'C5': null,
+      'C5.5': null,
+      'C5 WAGON': null
     },
     baseless: {
-      "C3.2S": "./docs/scheda_C3.2S_senza_pedana.pdf",
-      "C3.5S": "./docs/scheda_C3.5S_senza_pedana.pdf",
-      "C4S": "./docs/scheda_C4S_senza_pedana.pdf",
-      "C5.5S": "./docs/scheda_C5.5S_senza_pedana.pdf"
+      'C3.2S': null,
+      'C3.2S Comfort': null,
+      'C3.2SVS': null,
+      'C3.5S': null,
+      'C3.5SXL': null,
+      'C4S': null,
+      'C4SXL': null,
+      'C4SVS': null,
+      'C5.5S': null,
+      'C5.5S WAGON': null,
+      'C5S WAGON': null,
+      'C5.5S GLOBAL': null
     }
   };
 
-  // 📖 Mappa “modello → pagina” nel Manuale tecnico (completa se vuoi; fallback a #search)
+  // Alcune pagine del MANUALE (per “Manuale”/“Misure”); dati certi dalle tue schermate.
+  // NB: manterremo fallback #search se non specificato.
   const MANUAL_PAGES = {
-    "C3.2": 5,       // Esempi; aggiorna con i numeri reali se vuoi la precisione assoluta
-    "C3.5": 12,
-    "C4": 16,
-    "C4XL": 18,
-    "C5": 20,
-    "C5.5": 22,
-    "C5 WAGON": 25,
-    "C3.2S": 32,
-    "C3.5S": 36,
-    "C4S": 40,
-    "C5.5S": 44
+    'C3.2': 7,
+    'C3.2 Comfort': 14,
+    'C3.5': 20,
+    // 'C3.5XL': ?,  'C4': ?, 'C4XL': ?, ecc. (lo completiamo al prossimo giro)
   };
 
-  // 🚗 Tipologie veicolo (chiavi stabili)
-  const VEHICLE_TYPES = {
-    any:  { it:'Qualsiasi', en:'Any', es:'Cualquiera', fr:'Toutes', pt:'Qualquer' },
-    city: { it:'City / Utilitaria', en:'City car', es:'Ciudad', fr:'Citadine', pt:'Citadino' },
-    sedan:{ it:'Berlina', en:'Sedan', es:'Sedán', fr:'Berline', pt:'Sedan' },
-    suv:  { it:'SUV / Crossover', en:'SUV', es:'SUV', fr:'SUV', pt:'SUV' },
-    van:  { it:'Van / Furgone', en:'Van', es:'Furgón', fr:'Fourgon', pt:'Furgão' },
-    lcv:  { it:'Commerciale leggero', en:'Light commercial', es:'Comercial ligero', fr:'Véhicule léger', pt:'Comercial leve' }
-  };
-
-  // 🔌 Mappa compatibilità “tipo veicolo → modelli”
-  // Nota: è cumulativa e puoi ampliarla in base al manuale.
-  const VEHICLE_COMPAT = {
-    city:  ['C3.2','C3.5','C3.2S','C3.5S','C4','C4S'],
-    sedan: ['C3.2','C3.5','C3.2S','C3.5S','C4','C4S','C4XL'],
-    suv:   ['C4','C4XL','C5','C5.5','C5.5S'],
-    van:   ['C4XL','C5','C5.5','C5 WAGON'],
-    lcv:   ['C5','C5.5','C5 WAGON']
-  };
-
-  // Costruisce l'URL scheda modello
   function buildSheetUrl(modelId, baseKind /* 'withbase' | 'baseless' */) {
-    const file = SHEET_FILES[baseKind] && SHEET_FILES[baseKind][modelId];
-    if (file) return file; // iPhone-friendly
     const pdf = baseKind === 'withbase' ? PDF.withbase : PDF.baseless;
-    return `${pdf}#search=${encodeURIComponent(modelId)}`; // fallback robusto
+    const page = SHEET_PAGES[baseKind]?.[modelId];
+    if (Number.isInteger(page) && page > 0) return `${pdf}#page=${page}`;
+    return `${pdf}#search=${encodeURIComponent(modelId)}`;
   }
-
-  // Costruisce l'URL manuale modello
   function buildManualUrl(modelId) {
-    const p = MANUAL_PAGES[modelId];
-    return p ? `${PDF.manuale}#page=${p}` : `${PDF.manuale}#search=${encodeURIComponent(modelId)}`;
+    const page = MANUAL_PAGES[modelId];
+    if (Number.isInteger(page) && page > 0) return `${PDF.manuale}#page=${page}`;
+    return `${PDF.manuale}#search=${encodeURIComponent(modelId)}`;
   }
 
   // ------------------ i18n ------------------
@@ -91,8 +76,11 @@
     it: {
       title: '🔧 CASCOS — Configuratore Sollevatori 2 Colonne',
       lang: 'Lingua',
+      share: 'Condividi',
+      csv: 'CSV',
+      pdfmulti: 'PDF multiplo',
       save: 'Salva',
-      readme_btn: 'Leggimi',
+      readme: 'Leggimi',
       install: 'Installa',
       sec1: '1) Vincoli dell’officina',
       h: 'Altezza utile soffitto (mm)',
@@ -103,8 +91,8 @@
       pow: 'Alimentazione disponibile',
       base: 'Tipo colonna',
       tip: 'Suggerimento: imposta <em>larghezza baia ≥ 3350 mm</em> per le serie C3.2–C4; per veicoli lunghi valuta le versioni XL / WAGON.',
-      secVeh: 'Tipo di veicolo',
       sec2: '2) Veicolo tipo da sollevare',
+      secVeh: 'Tipo di veicolo',
       gvw: 'Peso veicolo (kg)',
       wb: 'Passo (mm) / ingombro',
       use: 'Uso',
@@ -121,227 +109,474 @@
       th_anchor: 'Anc. / Spessore<br>soletta',
       th_arms: 'Bracci',
       th_notes: 'Note',
-      offline: 'Puoi installarla e usarla offline.',
-      withbase: 'Con basamento',
-      baseless: 'Senza basamento',
-      ok: '✓ Compatibile',
+      tag_withbase: 'Con basamento',
+      tag_baseless: 'Senza basamento',
+      btn_sheet: '📄 Scheda',
+      btn_manual: '📘 Manuale',
+      btn_found: '🏗️ Fondazioni',
+      compat: 'Compatibile',
+      notCompat: '—',
       warn_slab: 'Soletta < 170 mm: adeguare prima del montaggio',
-      warn_weight: 'Veicolo > 3.5 t: considerare serie C5 / C5.5',
-      share: 'Condividi',
-      csv: 'CSV',
-      pdfmulti: 'PDF multiplo'
     },
     en: {
       title: '🔧 CASCOS — 2-Post Lift Configurator',
       lang: 'Language',
+      share: 'Share',
+      csv: 'CSV',
+      pdfmulti: 'Bulk PDF',
       save: 'Save',
-      readme_btn: 'Readme',
+      readme: 'Readme',
       install: 'Install',
       sec1: '1) Workshop constraints',
-      h: 'Ceiling height (mm)',
-      w: 'Bay width (mm)',
+      h: 'Ceiling useful height (mm)',
+      w: 'Bay width available (mm)',
       conc: 'Concrete quality',
-      conc_hint: 'For 3.2–5.5 t models use anchors on C20/25 concrete.',
+      conc_hint: 'For 3.2–5.5 t models anchors on C20/25 concrete are required.',
       th: 'Slab thickness (mm)',
-      pow: 'Power supply',
+      pow: 'Available power',
       base: 'Column type',
-      tip: 'Tip: set <em>bay width ≥ 3350 mm</em> for C3.2–C4; for long wheelbase consider XL/WAGON.',
-      secVeh: 'Vehicle type',
+      tip: 'Tip: set <em>bay width ≥ 3350 mm</em> for C3.2–C4; for long vehicles consider XL / WAGON versions.',
       sec2: '2) Vehicle to lift',
+      secVeh: 'Vehicle type',
       gvw: 'Vehicle weight (kg)',
-      wb: 'Wheelbase (mm) / length',
+      wb: 'Wheelbase / length (mm)',
       use: 'Use',
-      duty: 'Cycles/h',
+      duty: 'Cycles per hour',
       calc: 'Compute suggestions',
       reset: 'Reset',
       sec3: '3) Results & suggested models',
       th_model: 'Model',
       th_cap: 'Capacity',
-      th_inter: 'Interaxis<br>(mm)',
+      th_inter: 'Bay<br>(mm)',
       th_width: 'Total width<br>(mm)',
-      th_height: 'Clear height<br>under crossbar (mm)',
+      th_height: 'Clear height<br>under crossbeam (mm)',
       th_power: 'Power',
-      th_anchor: 'Anchors / Slab',
+      th_anchor: 'Anch. / Slab',
       th_arms: 'Arms',
       th_notes: 'Notes',
-      offline: 'You can install and use it offline.',
-      withbase: 'With base',
-      baseless: 'Baseless',
-      ok: '✓ Compatible',
-      warn_slab: 'Slab < 170 mm: upgrade before installation',
-      warn_weight: 'Vehicle > 3.5 t: consider C5 / C5.5',
-      share: 'Share',
-      csv: 'CSV',
-      pdfmulti: 'Multi PDF'
+      tag_withbase: 'With base',
+      tag_baseless: 'Baseless',
+      btn_sheet: '📄 Datasheet',
+      btn_manual: '📘 Manual',
+      btn_found: '🏗️ Foundations',
+      compat: 'Compatible',
+      notCompat: '—',
+      warn_slab: 'Slab < 170 mm: fix before installation',
     },
     es: {
-      title: '🔧 CASCOS — Configurador de elevadores 2 columnas',
+      title: '🔧 CASCOS — Configurador 2 Columnas',
       lang: 'Idioma',
+      share: 'Compartir',
+      csv: 'CSV',
+      pdfmulti: 'PDF múltiple',
       save: 'Guardar',
-      readme_btn: 'Léeme',
+      readme: 'Léeme',
       install: 'Instalar',
       sec1: '1) Restricciones del taller',
-      h: 'Altura útil del techo (mm)',
-      w: 'Ancho de bahía (mm)',
+      h: 'Altura útil techo (mm)',
+      w: 'Ancho bahía disponible (mm)',
       conc: 'Calidad del hormigón',
-      conc_hint: 'Para modelos 3.2–5.5 t usar anclajes en C20/25.',
-      th: 'Espesor de losa (mm)',
-      pow: 'Alimentación',
+      conc_hint: 'Para 3.2–5.5 t se requieren anclajes en C20/25.',
+      th: 'Espesor losa (mm)',
+      pow: 'Alimentación disponible',
       base: 'Tipo de columna',
-      tip: 'Sugerencia: ancho ≥ 3350 mm para C3.2–C4; para batalla larga considera XL/WAGON.',
-      secVeh: 'Tipo de vehículo',
+      tip: 'Sugerencia: usa <em>ancho ≥ 3350 mm</em> para C3.2–C4; para vehículos largos versiones XL / WAGON.',
       sec2: '2) Vehículo a elevar',
-      gvw: 'Peso del vehículo (kg)',
-      wb: 'Batalla / longitud (mm)',
+      secVeh: 'Tipo de vehículo',
+      gvw: 'Peso vehículo (kg)',
+      wb: 'Batalla / largo (mm)',
       use: 'Uso',
-      duty: 'Ciclos/h',
-      calc: 'Calcular',
-      reset: 'Restablecer',
+      duty: 'Ciclos por hora',
+      calc: 'Calcular sugerencias',
+      reset: 'Reset',
       sec3: '3) Resultados y modelos sugeridos',
       th_model: 'Modelo',
       th_cap: 'Capacidad',
       th_inter: 'Intereje<br>(mm)',
       th_width: 'Ancho total<br>(mm)',
-      th_height: 'Altura útil<br>bajo travesaño (mm)',
+      th_height: 'Altura libre<br>bajo travesaño (mm)',
       th_power: 'Alimentación',
-      th_anchor: 'Anclajes / Losa',
+      th_anchor: 'Ancl. / Losa',
       th_arms: 'Brazos',
       th_notes: 'Notas',
-      offline: 'Se puede instalar y usar sin conexión.',
-      withbase: 'Con base',
-      baseless: 'Sin base',
-      ok: '✓ Compatible',
-      warn_slab: 'Losa < 170 mm: reforzar antes de la instalación',
-      warn_weight: 'Vehículo > 3.5 t: considerar C5 / C5.5',
-      share: 'Compartir',
-      csv: 'CSV',
-      pdfmulti: 'PDF múltiple'
+      tag_withbase: 'Con base',
+      tag_baseless: 'Sin base',
+      btn_sheet: '📄 Ficha',
+      btn_manual: '📘 Manual',
+      btn_found: '🏗️ Cimentaciones',
+      compat: 'Compatible',
+      notCompat: '—',
+      warn_slab: 'Losa < 170 mm: adecuar antes del montaje',
     },
     fr: {
-      title: '🔧 CASCOS — Configurateur pont 2 colonnes',
+      title: '🔧 CASCOS — Configurateur 2 colonnes',
       lang: 'Langue',
+      share: 'Partager',
+      csv: 'CSV',
+      pdfmulti: 'PDF multiple',
       save: 'Enregistrer',
-      readme_btn: 'Lisez-moi',
+      readme: 'Lisez-moi',
       install: 'Installer',
       sec1: '1) Contraintes de l’atelier',
-      h: 'Hauteur sous plafond (mm)',
-      w: 'Largeur de baie (mm)',
-      conc: 'Qualité du béton',
-      conc_hint: 'Pour 3,2–5,5 t utiliser des ancrages sur béton C20/25.',
-      th: 'Épaisseur de dalle (mm)',
-      pow: 'Alimentation',
+      h: 'Hauteur utile sous plafond (mm)',
+      w: 'Largeur baie dispo (mm)',
+      conc: 'Qualité béton',
+      conc_hint: 'Pour 3.2–5.5 t, ancrages sur béton C20/25 requis.',
+      th: 'Épaisseur dalle (mm)',
+      pow: 'Alimentation dispo',
       base: 'Type de colonne',
-      tip: 'Astuce : largeur de baie ≥ 3350 mm pour C3.2–C4 ; pour empattement long voir XL/WAGON.',
-      secVeh: 'Type de véhicule',
+      tip: 'Astuce : largeur baie ≥ 3350 mm pour C3.2–C4 ; véhicules longs versions XL / WAGON.',
       sec2: '2) Véhicule à lever',
+      secVeh: 'Type de véhicule',
       gvw: 'Poids véhicule (kg)',
-      wb: 'Empattement (mm) / longueur',
+      wb: 'Empattement / longueur (mm)',
       use: 'Usage',
-      duty: 'Cycles/h',
+      duty: 'Cycles/heure',
       calc: 'Calculer',
       reset: 'Réinitialiser',
-      sec3: '3) Résultats & modèles suggérés',
+      sec3: '3) Résultats et modèles conseillés',
       th_model: 'Modèle',
       th_cap: 'Capacité',
       th_inter: 'Entraxe<br>(mm)',
-      th_width: 'Largeur totale<br>(mm)',
+      th_width: 'Largeur tot.<br>(mm)',
       th_height: 'Hauteur utile<br>sous traverse (mm)',
       th_power: 'Alimentation',
-      th_anchor: 'Ancrages / Dalle',
+      th_anchor: 'Ancr. / Dalle',
       th_arms: 'Bras',
-      th_notes: 'Remarques',
-      offline: 'Peut être installée et utilisée hors-ligne.',
-      withbase: 'Avec base',
-      baseless: 'Sans base',
-      ok: '✓ Compatible',
-      warn_slab: 'Dalle < 170 mm : renforcer avant installation',
-      warn_weight: 'Véhicule > 3,5 t : voir C5 / C5.5',
-      share: 'Partager',
-      csv: 'CSV',
-      pdfmulti: 'PDF multiple'
+      th_notes: 'Notes',
+      tag_withbase: 'Avec châssis',
+      tag_baseless: 'Sans châssis',
+      btn_sheet: '📄 Fiche',
+      btn_manual: '📘 Manuel',
+      btn_found: '🏗️ Fondations',
+      compat: 'Compatible',
+      notCompat: '—',
+      warn_slab: 'Dalle < 170 mm : à corriger avant pose',
     },
     pt: {
-      title: '🔧 CASCOS — Configurador elevador 2 colunas',
+      title: '🔧 CASCOS — Configurador 2 colunas',
       lang: 'Idioma',
-      save: 'Salvar',
-      readme_btn: 'Leia-me',
+      share: 'Partilhar',
+      csv: 'CSV',
+      pdfmulti: 'PDF múltiplo',
+      save: 'Guardar',
+      readme: 'Leia-me',
       install: 'Instalar',
       sec1: '1) Restrições da oficina',
-      h: 'Altura do teto (mm)',
-      w: 'Largura da baia (mm)',
-      conc: 'Qualidade do concreto',
-      conc_hint: 'Para modelos 3,2–5,5 t usar chumbadores em C20/25.',
+      h: 'Altura útil do teto (mm)',
+      w: 'Largura da baía (mm)',
+      conc: 'Qualidade do betão',
+      conc_hint: 'Para 3.2–5.5 t exigem-se ancoragens em C20/25.',
       th: 'Espessura da laje (mm)',
-      pow: 'Alimentação',
+      pow: 'Alimentação disponível',
       base: 'Tipo de coluna',
-      tip: 'Dica: largura da baia ≥ 3350 mm para C3.2–C4; para entre-eixos longo use XL/WAGON.',
-      secVeh: 'Tipo de veículo',
+      tip: 'Sugestão: largura ≥ 3350 mm para C3.2–C4; veículos longos XL / WAGON.',
       sec2: '2) Veículo a elevar',
+      secVeh: 'Tipo de veículo',
       gvw: 'Peso do veículo (kg)',
-      wb: 'Entre-eixos (mm) / comprimento',
+      wb: 'Distância entre eixos (mm)',
       use: 'Uso',
       duty: 'Ciclos/h',
-      calc: 'Calcular',
-      reset: 'Limpar',
+      calc: 'Calcular sugestões',
+      reset: 'Repor',
       sec3: '3) Resultados e modelos sugeridos',
       th_model: 'Modelo',
       th_cap: 'Capacidade',
       th_inter: 'Entre-eixos<br>(mm)',
       th_width: 'Largura total<br>(mm)',
-      th_height: 'Altura útil<br>sob travessa (mm)',
+      th_height: 'Altura livre<br>sob travessa (mm)',
       th_power: 'Alimentação',
-      th_anchor: 'Chumbadores / Laje',
+      th_anchor: 'Ancr. / Laje',
       th_arms: 'Braços',
       th_notes: 'Notas',
-      offline: 'Pode ser instalada e usada offline.',
-      withbase: 'Com base',
-      baseless: 'Sem base',
-      ok: '✓ Compatível',
-      warn_slab: 'Laje < 170 mm: reforçar antes da instalação',
-      warn_weight: 'Veículo > 3,5 t: considerar C5 / C5.5',
-      share: 'Compartilhar',
-      csv: 'CSV',
-      pdfmulti: 'PDF múltiplo'
+      tag_withbase: 'Com base',
+      tag_baseless: 'Sem base',
+      btn_sheet: '📄 Ficha',
+      btn_manual: '📘 Manual',
+      btn_found: '🏗️ Fundações',
+      compat: 'Compatível',
+      notCompat: '—',
+      warn_slab: 'Laje < 170 mm: adequar antes da montagem',
     }
   };
 
   const bindings = [
-    ['t_title', 'title'], ['t_lang', 'lang'], ['t_save', 'save'], ['t_readme', 'readme_btn'], ['t_install', 'install'],
-    ['t_sec1', 'sec1'], ['t_h', 'h'], ['t_w', 'w'], ['t_conc', 'conc'], ['t_conc_hint', 'conc_hint'], ['t_th', 'th'], ['t_pow', 'pow'], ['t_base', 'base'], ['t_tip', 'tip'],
-    ['t_sec2', 'sec2'], ['t_gvw', 'gvw'], ['t_wb', 'wb'], ['t_use', 'use'], ['t_duty', 'duty'], ['t_calc', 'calc'], ['t_reset', 'reset'],
-    ['t_sec3', 'sec3'], ['t_th_model', 'th_model'], ['t_th_cap', 'th_cap'], ['t_th_inter', 'th_inter'], ['t_th_width', 'th_width'], ['t_th_height', 'th_height'],
-    ['t_th_power', 'th_power'], ['t_th_anchor', 'th_anchor'], ['t_th_arms', 'th_arms'], ['t_th_notes', 'th_notes'], ['t_offline', 'offline'],
-    ['t_share', 'share'], ['t_csv', 'csv'], ['t_pdfmulti', 'pdfmulti']
+    ['t_title', 'title'], ['t_lang', 'lang'], ['t_share', 'share'],
+    ['t_csv', 'csv'], ['t_pdfmulti', 'pdfmulti'], ['t_save', 'save'],
+    ['t_readme', 'readme'], ['t_install', 'install'],
+    ['t_sec1', 'sec1'], ['t_h', 'h'], ['t_w', 'w'], ['t_conc', 'conc'],
+    ['t_conc_hint', 'conc_hint'], ['t_th', 'th'], ['t_pow', 'pow'],
+    ['t_base', 'base'], ['t_tip', 'tip'], ['t_sec2', 'sec2'],
+    ['t_secVeh', 'secVeh'], ['t_gvw', 'gvw'], ['t_wb', 'wb'],
+    ['t_use', 'use'], ['t_duty', 'duty'], ['t_calc', 'calc'],
+    ['t_reset', 'reset'], ['t_sec3', 'sec3'],
+    ['t_th_model', 'th_model'], ['t_th_cap', 'th_cap'],
+    ['t_th_inter', 'th_inter'], ['t_th_width', 'th_width'],
+    ['t_th_height', 'th_height'], ['t_th_power', 'th_power'],
+    ['t_th_anchor', 'th_anchor'], ['t_th_arms', 'th_arms'],
+    ['t_th_notes', 'th_notes']
   ];
 
   function applyLang(lang) {
     const L = I18N[lang] || I18N.it;
-    bindings.forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.innerHTML = L[key]; });
-    // Aggiorna etichette del selettore veicolo se presente
+    bindings.forEach(([id, key]) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = L[key];
+    });
+
+    // Ritraduci il menu “Tipo veicolo” mantenendo la scelta
     const vSel = $('#vehicleSel');
+    const prev = vSel ? vSel.value : 'any';
     if (vSel) {
-      const cur = vSel.value || 'any';
       vSel.innerHTML = '';
       Object.entries(VEHICLE_TYPES).forEach(([k, labels]) => {
         const opt = document.createElement('option');
-        opt.value = k; opt.textContent = labels[lang] || labels.it;
+        opt.value = k;
+        opt.textContent = labels[lang] || labels.it;
         vSel.appendChild(opt);
       });
-      vSel.value = cur;
+      vSel.value = prev;
     }
+
     document.documentElement.lang = lang;
     render(makeFiltered().slice(0, 40));
   }
-  $('#langSel')?.addEventListener('change', (e) => applyLang(e.target.value));
 
-  // ------------------ dataset ------------------
-  let MODELS = [];
-  fetch('./models.json').then(r => r.json()).then(d => { MODELS = d; initVehicleFilter(); applyLang('it'); });
+  // ------------------ dataset modelli (ridotto esemplificativo) ------------------
+  // NB: bracci min/max = valori reali per alcuni modelli; completiamo gli altri a step successivo.
+  const MODELS = [
+    { id: 'C3.2', ref: '13120E', capacity: 3200, bay: 2700, width: 3350, clear: 4248, power: ['400/3~','230/3~'], base: 'withbase',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 710 — Max 1050 mm',  vehicleTypes: ['city','sedan','mpv','suv'] },
 
-  // ------------------ vehicle selector (optional) ------------------
+    { id: 'C3.2 Comfort', ref: '13120C', capacity: 3200, bay: 2700, width: 3350, clear: 4248, power: ['400/3~','230/3~'], base: 'withbase',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 597 — Max 1122 mm',  vehicleTypes: ['city','sedan','mpv'] },
+
+    { id: 'C3.5', ref: '13168', capacity: 3500, bay: 2700, width: 3350, clear: 4248, power: ['400/3~','230/3~'], base: 'withbase',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 690 — Max 1325 mm', vehicleTypes: ['sedan','mpv','suv','van'] },
+
+    { id: 'C4', ref: '13194', capacity: 4000, bay: 2700, width: 3350, clear: 4248, power: ['400/3~','230/3~'], base: 'withbase',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 705 — Max 1335 mm', vehicleTypes: ['suv','van','lcv'] },
+
+    { id: 'C4XL', ref: '13194-4', capacity: 4000, bay: 3000, width: 3340, clear: 4248, power: ['400/3~','230/3~'], base: 'withbase',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 705 — Max 1335 mm', vehicleTypes: ['suv','van','lcv'] },
+
+    { id: 'C5.5', ref: '13998', capacity: 5500, bay: 2810, width: 3250, clear: 4250, power: ['400/3~','230/3~'], base: 'withbase',
+      anchors: '16× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 823 — Max 1505 mm', vehicleTypes: ['van','lcv'] },
+
+    { id: 'C5 WAGON', ref: '13176', capacity: 5000, bay: 3000, width: 3570, clear: 4250, power: ['400/3~','230/3~'], base: 'withbase',
+      anchors: '16× M16x145<br>C20/25, ≥ 170 mm', arms: '—', vehicleTypes: ['lcv'] },
+
+    // senza basamento (esempi)
+    { id: 'C3.2S', ref: '13120SE', capacity: 3200, bay: 2700, width: 4250, clear: 4250, power: ['400/3~','230/3~'], base: 'baseless',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 710 — Max 1050 mm', vehicleTypes: ['city','sedan','mpv','suv'] },
+
+    { id: 'C3.5S', ref: '13169', capacity: 3500, bay: 2700, width: 4250, clear: 4250, power: ['400/3~','230/3~'], base: 'baseless',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 690 — Max 1325 mm', vehicleTypes: ['sedan','mpv','suv','van'] },
+
+    { id: 'C4S', ref: '13194S', capacity: 4000, bay: 2700, width: 4250, clear: 4250, power: ['400/3~','230/3~'], base: 'baseless',
+      anchors: '12× M16x145<br>C20/25, ≥ 170 mm', arms: 'Max 1341 mm', vehicleTypes: ['suv','van','lcv'] },
+
+    { id: 'C5.5S', ref: '13998S', capacity: 5500, bay: 2810, width: 5150, clear: 4250, power: ['400/3~','230/3~'], base: 'baseless',
+      anchors: '16× M16x145<br>C20/25, ≥ 170 mm', arms: 'Min 758 — Max 1505 mm', vehicleTypes: ['van','lcv'] }
+  ];
+
+  // ------------------ tipi veicolo + compatibilità ------------------
+  const VEHICLE_TYPES = {
+    any:   { it:'Qualsiasi', en:'Any', es:'Cualquiera', fr:'Tous', pt:'Qualquer' },
+    city:  { it:'City / Utilitaria', en:'City / Small', es:'Ciudad / utilitario', fr:'Citadine', pt:'Citadino' },
+    sedan: { it:'Berlina / Crossover', en:'Sedan / Crossover', es:'Berlina / Crossover', fr:'Berline / Crossover', pt:'Sedan / Crossover' },
+    suv:   { it:'SUV / Pickup', en:'SUV / Pickup', es:'SUV / Pickup', fr:'SUV / Pickup', pt:'SUV / Pickup' },
+    mpv:   { it:'MPV / Monovolume', en:'MPV / Minivan', es:'MPV / Monovolumen', fr:'Monospace', pt:'MPV / Monovolume' },
+    van:   { it:'Van / Furgoni', en:'Van / LCV', es:'Furgón', fr:'Fourgon', pt:'Furgão' },
+    lcv:   { it:'Veicoli lunghi / WAGON', en:'Long vehicles / WAGON', es:'Vehículos largos / WAGON', fr:'Véhicules longs / WAGON', pt:'Veículos longos / WAGON' }
+  };
+
+  // Valori tipici per auto-compilare i campi quando si cambia tipo veicolo
+  const VEHICLE_DEFAULTS = {
+    any:   null,
+    city:  { kg: 1200, wb: 2400, use: 'auto', duty: 6 },
+    sedan: { kg: 1650, wb: 2700, use: 'auto', duty: 6 },
+    suv:   { kg: 2300, wb: 2900, use: 'auto', duty: 6 },
+    mpv:   { kg: 2000, wb: 2800, use: 'mpv', duty: 6 },
+    van:   { kg: 2800, wb: 3100, use: 'van',  duty: 10 },
+    lcv:   { kg: 3200, wb: 3300, use: 'auto', duty: 10 }
+  };
+
+  function applyVehicleDefaults(typeKey) {
+    const s = VEHICLE_DEFAULTS[typeKey];
+    if (!s) return;
+    const g = $('#inpGVW'), w = $('#inpWB'), u = $('#inpUse'), d = $('#inpDuty');
+    if (g) g.value = s.kg;
+    if (w) w.value = s.wb;
+    if (u) u.value = s.use;
+    if (d) d.value = String(s.duty);
+    if (typeof calculate === 'function') calculate();
+  }
+
+  // ------------------ filtro risultati ------------------
+  function makeFiltered() {
+    const base = $('#inpBase')?.value || 'withbase';
+    const gvw = num($('#inpGVW')?.value);
+    const wb = num($('#inpWB')?.value);
+    const duty = $('#inpDuty')?.value;
+    const typeKey = $('#vehicleSel')?.value || 'any';
+
+    return MODELS.filter(m => {
+      if (m.base !== base) return false;
+      if (typeKey !== 'any' && !m.vehicleTypes?.includes(typeKey)) return false;
+      if (gvw && m.capacity < gvw + 200) return false;            // piccolo margine sicurezza
+      if (wb && m.bay && wb > (m.bay + 200)) return false;        // passo troppo lungo per l’interasse
+      if (duty === '10' && m.capacity < 3500 && typeKey !== 'city') return false; // uso intensivo: escludi quelli leggerini
+      return true;
+    });
+  }
+
+  // ------------------ render tabella ------------------
+  function render(list) {
+    const lang = document.documentElement.lang || 'it';
+    const L = I18N[lang] || I18N.it;
+    const tbody = $('#rows'); if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const warnings = $('#warnings');
+    warnings.innerHTML = '';
+    const thk = num($('#inpThickness')?.value);
+    if (thk && thk < 170) {
+      const chip = document.createElement('div');
+      chip.className = 'tag bad';
+      chip.textContent = L.warn_slab;
+      warnings.appendChild(chip);
+    }
+
+    list.forEach(m => {
+      const tr = document.createElement('tr');
+
+      const tdModel = document.createElement('td');
+      tdModel.innerHTML = `
+        <div style="font-weight:600">${m.id}</div>
+        <div class="hint">ref. ${m.ref}</div>
+        <div class="tag">${m.base === 'withbase' ? L.tag_withbase : L.tag_baseless}</div>
+        <div class="chips" style="margin-top:6px;gap:6px">
+          <a class="btn" href="${buildSheetUrl(m.id, m.base)}" target="_blank" rel="noopener">${L.btn_sheet}</a>
+          <a class="btn" href="${buildManualUrl(m.id)}" target="_blank" rel="noopener">${L.btn_manual}</a>
+          <a class="btn" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.btn_found}</a>
+        </div>`;
+      tr.appendChild(tdModel);
+
+      const tdCap = document.createElement('td'); tdCap.textContent = fmt(m.capacity, 'kg'); tr.appendChild(tdCap);
+      const tdBay = document.createElement('td'); tdBay.textContent = fmt(m.bay, 'mm'); tr.appendChild(tdBay);
+      const tdW  = document.createElement('td'); tdW.textContent  = fmt(m.width, 'mm'); tr.appendChild(tdW);
+      const tdH  = document.createElement('td'); tdH.textContent  = fmt(m.clear, 'mm'); tr.appendChild(tdH);
+      const tdP  = document.createElement('td'); tdP.innerHTML    = (m.power || []).join(', '); tr.appendChild(tdP);
+      const tdAnc= document.createElement('td'); tdAnc.innerHTML  = m.anchors || '-'; tr.appendChild(tdAnc);
+      const tdAr = document.createElement('td'); tdAr.textContent = m.arms || '-'; tr.appendChild(tdAr);
+
+      const tdNote = document.createElement('td');
+      tdNote.innerHTML = `<span class="ok">✓</span> ${L.compat}`;
+      tr.appendChild(tdNote);
+
+      const tdSel = document.createElement('td');
+      tdSel.innerHTML = `<input type="checkbox" class="selRow">`;
+      tr.appendChild(tdSel);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ------------------ calcolo, reset ------------------
+  function calculate() {
+    render(makeFiltered().slice(0, 40));
+  }
+  function resetForm() {
+    ['inpH','inpW','inpThickness','inpGVW','inpWB'].forEach(id => { const el = $('#'+id); if (el) el.value=''; });
+    $('#inpConcrete').value = 'C20/25';
+    $('#inpPower').value = '400/3~';
+    $('#inpBase').value = 'withbase';
+    $('#inpUse').value = 'auto';
+    $('#inpDuty').value = '6';
+    $('#vehicleSel').value = 'any';
+    render(makeFiltered().slice(0, 40));
+  }
+
+  // ------------------ share / CSV / PDF multiplo / salva ------------------
+  function shareConfig() {
+    const params = new URLSearchParams({
+      h: $('#inpH').value || '',
+      w: $('#inpW').value || '',
+      t: $('#inpThickness').value || '',
+      c: $('#inpConcrete').value || '',
+      p: $('#inpPower').value || '',
+      b: $('#inpBase').value || '',
+      g: $('#inpGVW').value || '',
+      wb: $('#inpWB').value || '',
+      u: $('#inpUse').value || '',
+      d: $('#inpDuty').value || '',
+      vt: $('#vehicleSel').value || '',
+      lang: $('#langSel').value || (document.documentElement.lang || 'it')
+    });
+    const url = `${location.origin}${location.pathname}?${params.toString()}`;
+    if (navigator.share) {
+      navigator.share({ title: document.title, url }).catch(()=>{});
+    } else {
+      navigator.clipboard.writeText(url).then(()=> alert('Link copiato negli appunti')).catch(()=>{});
+    }
+  }
+
+  function selectedModels() {
+    const rows = $$('#rows tr');
+    const out = [];
+    rows.forEach(r => {
+      const cb = r.querySelector('.selRow');
+      if (cb && cb.checked) {
+        const id = r.querySelector('td:first-child div')?.textContent.trim();
+        const m = MODELS.find(x => x.id === id);
+        if (m) out.push(m);
+      }
+    });
+    return out.length ? out : makeFiltered().slice(0, 10);
+  }
+
+  function exportCSV() {
+    const L = I18N[document.documentElement.lang || 'it'];
+    const list = selectedModels();
+    const head = [
+      L.th_model,'ref','base',L.th_cap,'bay(mm)','width(mm)','clear(mm)',L.th_power,'anchors','arms'
+    ].join(';');
+    const body = list.map(m => [
+      m.id, m.ref, (m.base==='withbase'?L.tag_withbase:L.tag_baseless),
+      m.capacity, m.bay, m.width, m.clear, (m.power||[]).join('/'), (m.anchors||'').replace(/<br>/g,' '), (m.arms||'')
+    ].join(';')).join('\n');
+    const blob = new Blob([head+'\n'+body], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'cascos_config.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function openPDFMultiple() {
+    selectedModels().forEach(m => {
+      window.open(buildSheetUrl(m.id, m.base), '_blank', 'noopener');
+    });
+  }
+
+  function saveJSON() {
+    const cfg = {
+      h: $('#inpH').value, w: $('#inpW').value, t: $('#inpThickness').value,
+      concrete: $('#inpConcrete').value, power: $('#inpPower').value, base: $('#inpBase').value,
+      g: $('#inpGVW').value, wb: $('#inpWB').value, use: $('#inpUse').value, duty: $('#inpDuty').value,
+      vehType: $('#vehicleSel').value, lang: $('#langSel').value
+    };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(cfg,null,2)], {type:'application/json'}));
+    a.download = 'cascos_config.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ------------------ init vehicle filter ------------------
   function initVehicleFilter() {
-    const vSel = $('#vehicleSel');
-    if (!vSel) return; // pagina senza selettore: ignora
+    const vSel = $('#vehicleSel'); if (!vSel) return;
     const lang = document.documentElement.lang || 'it';
     vSel.innerHTML = '';
     Object.entries(VEHICLE_TYPES).forEach(([k, labels]) => {
@@ -350,208 +585,54 @@
       vSel.appendChild(opt);
     });
     vSel.value = 'any';
-    vSel.addEventListener('change', () => render(makeFiltered().slice(0, 40)));
-    // Aggiungo una label se prevista
-    const lbl = $('#t_secVeh'); if (lbl) lbl.textContent = (I18N[lang]||I18N.it).secVeh;
-  }
-
-  // ------------------ logic ------------------
-  const rows = $('#rows'), warnings = $('#warnings');
-
-  function issuesFor(m) {
-    const L = I18N[document.documentElement.lang] || I18N.it;
-    const H = +($('#inpH').value || 0), W = +($('#inpW').value || 0), T = +($('#inpThickness').value || 0);
-    const conc = $('#inpConcrete').value, pw = $('#inpPower').value;
-    const arr = [];
-    if (H && m.h_sotto_traversa && H < (m.h_sotto_traversa - 200)) arr.push({ t: 'Soffitto basso', cls: 'warn' });
-    if (W && m.larghezza && W < m.larghezza) arr.push({ t: 'Baia stretta', cls: 'bad' });
-    if (pw && !(m.power || []).includes(pw)) arr.push({ t: 'Alimentazione non prevista', cls: 'warn' });
-    if (T && T < (m.anchors?.thickness_min_mm || 170)) arr.push({ t: L.warn_slab, cls: 'bad' });
-    if (conc && m.anchors && conc !== 'unknown' && conc !== m.anchors.concrete) arr.push({ t: `${m.anchors.concrete}`, cls: 'warn' });
-    return arr;
-  }
-
-  function fitScore(m) {
-    const gvw = +($('#inpGVW').value || 0), wb = +($('#inpWB').value || 0);
-    let s = 0;
-    if (gvw > 0) { const head = (m.portata - gvw) / m.portata; s += Math.max(-1, Math.min(1, head * 2)); }
-    if (wb > 0) { const wantsLong = wb >= 3000; const long = /XL|WAGON/i.test(m.id) || m.interasse >= 3000; s += wantsLong ? (long ? 0.6 : -0.6) : (long ? -0.2 : 0.2); }
-    return s;
-  }
-
-  function makeFiltered() {
-    const gvw = +($('#inpGVW').value || 0), wantBase = $('#inpBase').value, pw = $('#inpPower').value;
-    const vehSel = $('#vehicleSel') ? $('#vehicleSel').value : 'any';
-    let list = [...MODELS]
-      .filter(m => !wantBase || m.base === wantBase)
-      .filter(m => !gvw || m.portata >= Math.max(1000, gvw * 1.25))
-      .filter(m => !pw || (m.power || []).includes(pw));
-
-    // filtro per tipo veicolo se selezionato
-    if (vehSel && vehSel !== 'any') {
-      const allowed = new Set(VEHICLE_COMPAT[vehSel] || []);
-      list = list.filter(m => allowed.has(m.id));
-    }
-
-    return list.sort((a, b) => fitScore(b) - fitScore(a));
-  }
-
-  function render(list) {
-    const L = I18N[document.documentElement.lang] || I18N.it;
-    rows.innerHTML = '';
-    list.forEach(m => {
-      const issues = issuesFor(m);
-      const tr = document.createElement('tr');
-      const isWithBase = m.base === 'withbase';
-      const schedaUrl = buildSheetUrl(m.id, isWithBase ? 'withbase' : 'baseless');
-      const manualUrl = buildManualUrl(m.id);
-      const arms = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '–')}–${(m.arms.max_mm ?? '–')} mm` : '–';
-      const baseChip = `<div class="tag" style="margin-top:4px">${isWithBase ? L.withbase : L.baseless}</div>`;
-      tr.innerHTML = `
-        <td>
-          <strong>${m.id}</strong>
-          <div class="hint">ref. ${m.ref || '-'}</div>
-          ${baseChip}
-          <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
-            <a class="btn" style="padding:2px 8px" href="${schedaUrl}" target="_blank" rel="noopener">📄 ${L.readme_btn==='Readme'?'Sheet':'Scheda'}</a>
-            <a class="btn" style="padding:2px 8px" href="${manualUrl}" target="_blank" rel="noopener">📘 Manuale</a>
-            <a class="btn" style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">🏗️ Fondazioni</a>
-          </div>
-        </td>
-        <td>${fmt(m.portata, 'kg')}</td>
-        <td>${fmt(m.interasse, 'mm')}</td>
-        <td>${fmt(m.larghezza, 'mm')}</td>
-        <td>${fmt(m.h_sotto_traversa, 'mm')}</td>
-        <td>${(m.power || []).join(', ') || '-'}</td>
-        <td>${m.anchors ? `${m.anchors.qty}× ${m.anchors.type}<br>${m.anchors.concrete}, ≥ ${m.anchors.thickness_min_mm} mm` : '-'}</td>
-        <td>${arms}</td>
-        <td>${issues.map(i => `<span class="tag ${i.cls}">${i.t}</span>`).join(' ') || `<span class="ok">${L.ok}</span>`}</td>
-        <td><input type="checkbox" class="pick" data-id="${m.id}" onclick="event.stopPropagation()"></td>`;
-      tr.style.cursor = 'pointer';
-      tr.addEventListener('click', () => openSheet(m, L));
-      rows.appendChild(tr);
+    vSel.addEventListener('change', () => {
+      applyVehicleDefaults(vSel.value);
+      render(makeFiltered().slice(0, 40));
     });
   }
 
-  // ------------------ actions ------------------
-  function selectedIds() { return Array.from(document.querySelectorAll('.pick:checked')).map(i => i.dataset.id); }
-  function buildQuery(extras) {
-    const p = new URLSearchParams(); const set = (k, v) => { if (v != null && v !== '') p.set(k, v); };
-    set('H', $('#inpH').value); set('W', $('#inpW').value); set('T', $('#inpThickness').value);
-    set('C', $('#inpConcrete').value); set('P', $('#inpPower').value); set('B', $('#inpBase').value);
-    set('GVW', $('#inpGVW').value); set('WB', $('#inpWB').value);
-    // veicolo selezionato
-    if ($('#vehicleSel')) set('V', $('#vehicleSel').value);
-    if (extras) Object.keys(extras).forEach(k => set(k, extras[k]));
-    return p.toString();
-  }
-
-  // Share
-  $('#shareBtn')?.addEventListener('click', () => {
-    const url = location.origin + location.pathname + '?' + buildQuery({ ids: selectedIds().join(',') });
-    if (navigator.share) { navigator.share({ title: 'CASCOS Config', url }); }
-    else { navigator.clipboard.writeText(url); alert('Link copiato:\n' + url); }
-  });
-
-  // CSV
-  function toCSV(list) {
-    const head = ['Model', 'Ref', 'Capacity(kg)', 'Interaxis(mm)', 'Width(mm)', 'Clear height(mm)', 'Power', 'Anchors', 'Arms', 'Type'];
-    const lines = [head.join(';')];
-    list.forEach(m => {
-      const anc = m.anchors ? `${m.anchors.qty}x ${m.anchors.type} ${m.anchors.concrete} ≥${m.anchors.thickness_min_mm}mm` : '';
-      const arms = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '')}-${(m.arms.max_mm ?? '')}` : '';
-      lines.push([m.id, m.ref || '', m.portata || '', m.interasse || '', m.larghezza || '', m.h_sotto_traversa || '', (m.power || []).join(','), anc, arms, (m.base || '')].join(';'));
-    });
-    return lines.join('\n');
-  }
-  $('#csvBtn')?.addEventListener('click', () => {
-    const ids = selectedIds();
-    const list = ids.length ? MODELS.filter(m => ids.includes(m.id)) : makeFiltered().slice(0, 40);
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([toCSV(list)], { type: 'text/csv' })); a.download = 'cascos_modelli.csv'; a.click();
-  });
-
-  // PDF multiplo
-  $('#pdfMultiBtn')?.addEventListener('click', () => {
-    const ids = selectedIds();
-    const list = ids.length ? MODELS.filter(m => ids.includes(m.id)) : makeFiltered().slice(0, 10);
-    const L = I18N[document.documentElement.lang] || I18N.it;
-    list.forEach((m, i) => setTimeout(() => openSheet(m, L, true), i * 200));
-  });
-
-  // Salva configurazione (JSON)
-  $('#saveBtn')?.addEventListener('click', () => {
-    const payload = {
-      timestamp: new Date().toISOString(),
-      lang: document.documentElement.lang,
-      inputs: {
-        altezza_mm: +($('#inpH').value || 0) || null,
-        larghezza_mm: +($('#inpW').value || 0) || null,
-        calcestruzzo: $('#inpConcrete').value,
-        soletta_mm: +($('#inpThickness').value || 0) || null,
-        alimentazione: $('#inpPower').value,
-        tipo_colonna: $('#inpBase').value,
-        tipo_veicolo: $('#vehicleSel') ? $('#vehicleSel').value : 'any',
-        peso_veicolo: +($('#inpGVW').value || 0) || null,
-        passo_mm: +($('#inpWB').value || 0) || null,
-        uso: $('#inpUse')?.value,
-        cicli_ora: +($('#inpDuty')?.value || 0) || null
-      },
-      selected_ids: selectedIds()
+  // ------------------ restore da URL ------------------
+  function restoreFromURL() {
+    const q = new URLSearchParams(location.search);
+    const get = (k) => q.get(k);
+    const map = {
+      inpH:'h', inpW:'w', inpThickness:'t', inpConcrete:'c', inpPower:'p',
+      inpBase:'b', inpGVW:'g', inpWB:'wb', inpUse:'u', inpDuty:'d'
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cascos_configurazione.json'; a.click();
-  });
-
-  // Scheda singola / stampa
-  function openSheet(m, L, silent = false) {
-    const css = `body{font:13px system-ui,Segoe UI,Roboto,Arial;margin:22px}
-h1{font-size:18px;margin:0 0 8px 0}
-table{width:100%;border-collapse:collapse;margin-top:6px}
-td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
-    const arms = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '–')}–${(m.arms.max_mm ?? '–')} mm` : '–';
-    const schedaUrl = buildSheetUrl(m.id, m.base === 'withbase' ? 'withbase' : 'baseless');
-    const manualUrl = buildManualUrl(m.id);
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${m.id} — CASCOS</title><style>${css}</style></head><body>
-<h1>${m.id} — CASCOS</h1>
-<table>
-<tr><th>${L.th_cap || 'Portata'}</th><td>${m.portata || '-'} kg</td></tr>
-<tr><th>Interasse</th><td>${m.interasse || '-'} mm</td></tr>
-<tr><th>Larghezza</th><td>${m.larghezza || '-'} mm</td></tr>
-<tr><th>Altezza utile</th><td>${m.h_sotto_traversa || '-'} mm</td></tr>
-<tr><th>${L.th_arms || 'Bracci'}</th><td>${arms}</td></tr>
-<tr><th>${L.th_power || 'Alimentazione'}</th><td>${(m.power || []).join(', ') || '-'}</td></tr>
-<tr><th>${(L.th_anchor || 'Ancoraggi').replace('<br>',' ')}</th><td>${m.anchors ? (m.anchors.qty + '× ' + m.anchors.type + ' — ' + m.anchors.concrete + ', ≥ ' + m.anchors.thickness_min_mm + ' mm') : '-'}</td></tr>
-<tr><th>Tipo</th><td>${m.base === 'withbase' ? (L.withbase || 'Con basamento') : (L.baseless || 'Senza basamento')}</td></tr>
-<tr><th>Documentazione</th><td>
-<a href="${schedaUrl}" target="_blank">Scheda</a> ·
-<a href="${manualUrl}" target="_blank">Manuale</a> ·
-<a href="${PDF.fondazioni}" target="_blank">Fondazioni</a>
-</td></tr>
-</table>
-<script>window.addEventListener('load',()=>{ ${silent ? '' : 'setTimeout(()=>print(),200);'} });</script>
-</body></html>`;
-    const w = window.open('', '_blank'); w.document.write(html); w.document.close();
+    Object.entries(map).forEach(([id,key]) => { const el = $('#'+id); if (el && get(key)!=null) el.value = get(key); });
+    if (get('lang')) { $('#langSel').value = get('lang'); applyLang(get('lang')); }
+    if (get('vt')) { $('#vehicleSel').value = get('vt'); applyVehicleDefaults(get('vt')); }
   }
-
-  // ------------------ events ------------------
-  function calculate() {
-    const L = I18N[document.documentElement.lang] || I18N.it;
-    warnings.innerHTML = '';
-    const lst = [];
-    if ((+($('#inpThickness').value || 0)) < 170) lst.push({ t: L.warn_slab, cls: 'bad' });
-    if ((+($('#inpGVW').value || 0)) > 3500) lst.push({ t: L.warn_weight, cls: 'warn' });
-    lst.forEach(w => { const s = document.createElement('span'); s.className = `tag ${w.cls}`; s.textContent = w.t; warnings.appendChild(s); });
-    render(makeFiltered().slice(0, 40));
-  }
-  $('#calcBtn')?.addEventListener('click', calculate);
-  $('#resetBtn')?.addEventListener('click', () => { document.querySelectorAll('input').forEach(i => i.value = ''); if ($('#vehicleSel')) $('#vehicleSel').value='any'; calculate(); });
 
   // ------------------ PWA ------------------
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault(); deferredPrompt = e;
-    const b = $('#installBtn'); if (b) { b.hidden = false; b.onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; b.hidden = true; } }; }
-  });
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt=e; $('#installBtn').hidden=false; });
+  $('#installBtn')?.addEventListener('click', async() => { if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; });
 
+  // ------------------ wireup ------------------
+  function init() {
+    // lingua
+    const langSel = $('#langSel');
+    if (langSel) langSel.addEventListener('change', () => applyLang(langSel.value));
+    applyLang(langSel?.value || 'it');
+
+    // vehicle filter
+    initVehicleFilter();
+
+    // azioni
+    $('#calcBtn')?.addEventListener('click', calculate);
+    $('#resetBtn')?.addEventListener('click', resetForm);
+    $('#shareBtn')?.addEventListener('click', shareConfig);
+    $('#csvBtn')?.addEventListener('click', exportCSV);
+    $('#pdfMultiBtn')?.addEventListener('click', openPDFMultiple);
+    $('#saveBtn')?.addEventListener('click', saveJSON);
+
+    // ripristino da URL
+    restoreFromURL();
+
+    // primo render
+    render(makeFiltered().slice(0, 40));
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
 })();
