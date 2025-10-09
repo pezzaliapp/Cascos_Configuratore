@@ -1,0 +1,12 @@
+[
+  {
+    "id": "C3.2",
+    "base": "withbase",
+    "portata": 3200
+  },
+  {
+    "id": "C3.2S",
+    "base": "baseless",
+    "portata": 3200
+  }
+]
