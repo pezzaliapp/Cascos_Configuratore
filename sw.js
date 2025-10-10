@@ -1,4 +1,4 @@
-// sw.js — safe app-shell + PDF bypass
+// sw.js — v5 — safe app-shell + HARD PDF BYPASS
 const CACHE = 'cascos-config-v5';
 const CORE = [
   './',
@@ -9,9 +9,7 @@ const CORE = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())
-  );
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -24,23 +22,24 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const req = e.request;
-  // Non GET? esci.
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
 
-  // ---- BYPASS: PDF e file statici non vanno in fallback! ----
+  // ---- HARD BYPASS: qualsiasi PDF va SEMPRE in rete (niente app-shell, niente cache) ----
+  if ((url.pathname || '').toLowerCase().endsWith('.pdf')) {
+    e.respondWith(fetch(req));
+    return;
+  }
+
+  // Bypass anche per asset statici: prova rete poi cache
   const pathname = url.pathname || '';
-  const isPDF = pathname.endsWith('.pdf');
   const isStaticAsset =
     /\.(?:js|css|png|jpg|jpeg|webp|svg|ico|json|webmanifest)$/.test(pathname) ||
     pathname.startsWith('/docs/') || pathname.startsWith('/ARMS_FILES/');
 
-  if (isPDF || isStaticAsset) {
-    // Vai in rete (con fallback cache se offline)
-    e.respondWith(
-      fetch(req).catch(() => caches.match(req))
-    );
+  if (isStaticAsset) {
+    e.respondWith(fetch(req).catch(() => caches.match(req)));
     return;
   }
 
