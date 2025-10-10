@@ -2,275 +2,359 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-  <title>Informazioni legali e Licenza d’uso — CASCOS Configuratore</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="dark light">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+
+  <title>Lift Configurator — pezzaliAPP.com</title>
+
+  <!-- Colori e tema -->
+  <meta name="theme-color" content="#0b1022">
+  <meta name="background-color" content="#0b1022">
+  <meta name="description" content="Lift Configurator — Strumento professionale per la preventivazione e selezione sollevatori a 2 colonne CASCOS. Sviluppato da pezzaliAPP.com">
+  <meta name="author" content="Alessandro Pezzali — pezzaliAPP.com">
+
+  <!-- PWA / icone -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+
+  <!-- iOS PWA extras -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
   <style>
-    :root{
-      --bg:#0b1022;--card:#111735;--ink:#eef2ff;--muted:#9fb0d9;
-      --ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#1d2a55;--focus:#2dd4bf;
-      --paper:#ffffff;--ink-inv:#0b1022;
+    :root{ --bg:#0b1022; --card:#111735; --ink:#eef2ff; --muted:#9fb0d9; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --line:#1d2a55; --focus:#2dd4bf; }
+    *{box-sizing:border-box} html,body{height:100%; -webkit-text-size-adjust:100%}
+    body{margin:0;background:#0b1022;color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{position:sticky;top:0;z-index:10;background:#0c1430cc;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding-top:max(0px, env(safe-area-inset-top))}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    h1{margin:0;font-size:20px;line-height:1.2}
+    .grid{display:grid;gap:16px}
+    @media(min-width:950px){.grid{grid-template-columns:1.1fr .9fr}}
+    @media(max-width:680px){
+      .row{grid-template-columns:1fr !important}
+      nav{gap:6px !important;flex-wrap:wrap}
+      .wrap{padding-left:12px;padding-right:12px}
     }
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#ffffff; --card:#f7f9ff; --ink:#0b1022; --muted:#4b5b86; --line:#dfe6fb; }
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;background:var(--bg);color:var(--ink);
-      font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    }
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px #0003}
+    .card h2{margin:0 0 8px 0;font-size:18px;line-height:1.2}
+    .card .inner{padding:14px}
+    label{display:block;margin:8px 0 6px 0;color:var(--muted)}
+    input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0e1634;color:var(--ink);outline:none}
+    input:focus,select:focus{border-color:var(--focus);box-shadow:0 0 0 3px #2dd4bf33}
+    .row{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+    .btn{display:inline-flex;align-items:center;gap:8px;background:#0e193f;border:1px solid var(--line);padding:10px 14px;border-radius:12px;color:var(--ink);cursor:pointer;text-decoration:none;white-space:nowrap}
+    .btn:hover{border-color:var(--focus)}
+    .btn.primary{background:linear-gradient(180deg,#1a285e,#132454);border-color:#243b7a}
+    .hint{font-size:12px;color:var(--muted)}
+    .tag{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px;margin-right:6px;color:var(--muted)}
+    .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
+    table{width:100%;border-collapse:collapse;min-width:920px}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{color:var(--muted);font-weight:600}
+    .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+    footer{opacity:.8;color:var(--muted);padding:20px 0;padding-bottom:max(20px, env(safe-area-inset-bottom))}
+    .callout{border-left:4px solid var(--focus);background:#0f183b;padding:12px 14px;border-radius:12px}
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .lang{display:flex;gap:8px;align-items:center}
+    @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
 
-    /* Sticky header */
-    .topbar{
-      position:sticky;top:0;z-index:20;
-      backdrop-filter:blur(10px);
-      background:color-mix(in oklab, var(--bg) 85%, transparent);
-      border-bottom:1px solid var(--line);
-    }
-    .wrap{max-width:960px;margin:0 auto;padding:12px 18px}
+    /* Tipografia fluida */
+    html { font-size: clamp(14px, 0.9vw + 12px, 16px); }
+    body { font-size: 0.95rem; line-height: 1.5; }
+    h1 { font-size: clamp(18px, 1.2vw + 16px, 26px); }
+    .card h2 { font-size: clamp(16px, 0.8vw + 14px, 20px); }
+    .btn { font-size: clamp(13px, 0.4vw + 12px, 15px); padding: clamp(8px, 0.6vw + 6px, 12px) clamp(10px, 0.8vw + 8px, 14px); border-radius: 12px; }
+    .btn.primary { border-width: 1px; }
+    label { font-size: clamp(13px, 0.2vw + 12px, 14px); }
+    .hint, .tag { font-size: clamp(11px, 0.2vw + 10px, 12px); }
+    .tag { padding: 2px 8px; }
+    input, select { font-size: clamp(14px, 0.3vw + 12px, 15px); padding: clamp(10px, 0.6vw + 8px, 12px); border-radius: 12px; }
+    .grid { gap: clamp(10px, 1.2vw, 16px); }
+    .row  { gap: clamp(8px, 1vw, 12px); }
+    .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch }
+    table { min-width: 880px; }
+    th, td { padding: clamp(8px, 0.8vw, 12px); line-height: 1.35; }
+    th { font-size: clamp(12px, 0.3vw + 11px, 13.5px); }
+    td { font-size: clamp(13px, 0.3vw + 12px, 15px); }
+    td .btn { padding: 2px 8px; font-size: 12px; }
+    td small, .hint { line-height: 1.25 }
+    @media (max-width: 900px) { .wrap { padding-left: 12px; padding-right: 12px; } header .wrap { gap: 8px; } nav { gap: 6px; flex-wrap: wrap; } }
+    @media (max-width: 680px) { .row { grid-template-columns: 1fr !important; } h1 { font-size: clamp(18px, 5vw, 22px); } .card .inner { padding: 12px; } table { min-width: 760px; } th, td { padding: 8px; } .chips { gap: 6px; } .btn { padding: 8px 10px; border-radius: 10px; } .tag { padding: 2px 7px; } }
+    @media (min-width: 1300px) { .wrap { max-width: 1200px; } table { min-width: 960px; } th, td { padding: 12px 14px; } }
 
-    .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .backbtn{
-      display:inline-flex;align-items:center;gap:8px;
-      border:1px solid var(--line);background:var(--card);color:var(--ink);
-      padding:8px 12px;border-radius:12px;text-decoration:none;
-      white-space:nowrap;
-    }
-    .backbtn:hover{border-color:var(--focus);box-shadow:0 0 0 3px #2dd4bf33}
-    .head-title{display:flex;flex-direction:column;gap:6px;flex:1 1 auto}
-    h1{margin:0;font-size:clamp(22px,2.2vw + 12px,34px);line-height:1.2}
-
-    .chips{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{border:1px solid var(--line);padding:2px 10px;border-radius:999px;font-size:12px;color:var(--muted);white-space:nowrap}
-
-    /* language pills */
-    .langbar{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      border:1px solid var(--line);background:var(--card);color:var(--ink);
-      padding:8px 12px;border-radius:999px;cursor:pointer;
-      text-decoration:none;font-size:14px;user-select:none;
-    }
-    .pill[aria-current="true"]{
-      border-color:var(--focus);
-      box-shadow:0 0 0 3px #2dd4bf33;
-    }
-
-    main{padding-bottom:28px}
-    .card{
-      background:var(--card);border:1px solid var(--line);border-radius:16px;
-      padding:18px;margin:14px 0;
-    }
-    .muted{color:var(--muted)}
-    h2{margin:1.4em 0 .4em;font-size:20px}
-    a{color:inherit}
-    .notice{border-left:4px solid var(--focus);background:#0f183b22;padding:12px;border-radius:12px}
-
-    footer{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
-
-    @media print{
-      .topbar{position:static;backdrop-filter:none;border:none}
-      .langbar, .backbtn{display:none}
-      body{background:white;color:black}
-      .card{border-color:#ddd}
-    }
+    /* ===== Modal legale ===== */
+    .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px env(safe-area-inset-right) 16px env(safe-area-inset-left);z-index:50}
+    .modal-backdrop[aria-hidden="false"]{display:flex}
+    .modal{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:760px;width:100%;box-shadow:0 10px 40px #0007}
+    .modal header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:transparent}
+    .modal header h3{margin:0;font-size:18px}
+    .modal .body{padding:14px 16px}
+    .modal .actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 16px;border-top:1px solid var(--line)}
+    .modal .close{background:#0e193f;border:1px solid var(--line);padding:8px 10px;border-radius:10px;color:var(--ink);cursor:pointer}
+    .legal[hidden]{display:none !important}
   </style>
 </head>
 <body>
-  <!-- Sticky header -->
-  <header class="topbar">
-    <div class="wrap">
-      <div class="toolbar">
-        <a href="./index.html" id="backLink" class="backbtn" aria-label="Torna al configuratore">← Torna al configuratore</a>
-        <div class="head-title">
-          <h1 id="pageTitle">Informazioni legali e Licenza d’uso</h1>
-          <div class="chips">
-            <span class="chip">Versione: 1.0</span>
-            <span class="chip" id="chipDate">Data: 10/10/2025</span>
-            <span class="chip" id="chipJur">Giurisdizione: IT / UE</span>
-          </div>
+  <header>
+    <div class="wrap" style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">
+      <h1 id="t_title">🔧 CASCOS — Configuratore Sollevatori 2 Colonne</h1>
+      <nav style="display:flex;gap:8px;align-items:center">
+        <div class="lang">
+          <label for="langSel" class="hint" id="t_lang">Lingua</label>
+          <select id="langSel" aria-label="Seleziona lingua">
+            <option value="it">Italiano</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="pt">Português</option>
+          </select>
         </div>
-      </div>
-
-      <!-- Language pills -->
-      <nav class="langbar" role="tablist" aria-label="Lingue del documento">
-        <button class="pill" role="tab" id="tab-it" data-lang="it" aria-selected="true" aria-current="true">🇮🇹 Italiano</button>
-        <button class="pill" role="tab" id="tab-en" data-lang="en" aria-selected="false">🇬🇧 English</button>
-        <button class="pill" role="tab" id="tab-es" data-lang="es" aria-selected="false">🇪🇸 Español</button>
-        <button class="pill" role="tab" id="tab-fr" data-lang="fr" aria-selected="false">🇫🇷 Français</button>
+        <button class="btn" id="shareBtn" type="button" aria-label="Condividi configurazione" title="Condividi scheda">🔗 <span id="t_share">Condividi</span></button>
+        <button class="btn" id="csvBtn" type="button" aria-label="Esporta CSV" title="Esporta CSV">🧾 <span id="t_csv">CSV</span></button>
+        <button class="btn" id="pdfMultiBtn" type="button" aria-label="Apri più PDF" title="PDF multiplo">🖨️ <span id="t_pdfmulti">PDF multiplo</span></button>
+        <button class="btn" id="saveBtn" type="button" aria-label="Esporta configurazione" title="Esporta configurazione">💾 <span id="t_save">Salva</span></button>
+        <a class="btn" href="./README.html" target="_blank" rel="noopener" aria-label="Leggimi">📖 <span id="t_readme">Leggimi</span></a>
+        <a class="btn" href="./LICENSE.html#it" target="_blank" rel="noopener" aria-label="Licenza completa">📜 Licenza</a>
+        <button class="btn" id="installBtn" type="button" hidden aria-label="Installa app">➕ <span id="t_install">Installa</span></button>
+        <button class="btn" id="legalBtn" type="button" aria-label="Informazioni legali">ℹ️ Info legali</button>
       </nav>
     </div>
   </header>
 
-  <main class="wrap">
-    <!-- ================= ITALIANO (originale) ================= -->
-    <article id="doc-it" lang="it" data-lang="it">
-      <p class="muted">Documento legale per “CASCOS — Configuratore Sollevatori 2 Colonne (PWA)”.</p>
+  <main class="wrap grid" id="app">
+    <!-- 1) Vincoli officina -->
+    <section class="card">
+      <div class="inner">
+        <h2 id="t_sec1">1) Vincoli dell’officina</h2>
+        <div class="row">
+          <div>
+            <label id="t_h" for="inpH">Altezza utile soffitto (mm)</label>
+            <input type="number" id="inpH" placeholder="es. 4000" min="2500" step="10">
+          </div>
+          <div>
+            <label id="t_w" for="inpW">Larghezza baia disponibile (mm)</label>
+            <input type="number" id="inpW" placeholder="es. 3500" min="3000" step="10">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label id="t_conc" for="inpConcrete">Qualità calcestruzzo</label>
+            <select id="inpConcrete">
+              <option value="C20/25">C20/25 (standard EN)</option>
+              <option value="C25/30">C25/30</option>
+              <option value="unknown">Sconosciuta</option>
+            </select>
+            <div class="hint" id="t_conc_hint">Per i modelli 3.2–5.5 t sono richiesti ancoraggi su calcestruzzo C20/25.</div>
+          </div>
+          <div>
+            <label id="t_th" for="inpThickness">Spessore soletta (mm)</label>
+            <input type="number" id="inpThickness" placeholder="≥ 170 consigliato" min="100" step="1">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label id="t_pow" for="inpPower">Alimentazione disponibile</label>
+            <select id="inpPower">
+              <option value="400/3~">Trifase 400 V</option>
+              <option value="230/3~">Trifase 230 V</option>
+              <option value="230/1~">Monofase 230 V</option>
+            </select>
+          </div>
+          <div>
+            <label id="t_base" for="inpBase">Tipo colonna</label>
+            <select id="inpBase">
+              <option value="withbase">Con basamento/pedana</option>
+              <option value="baseless">Senza basamento (sbalzo libero)</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:10px" class="callout" id="t_tip">
+          Suggerimento: imposta <em>larghezza baia ≥ 3350 mm</em> per le serie C3.2–C4; per veicoli lunghi valuta le versioni XL / WAGON.
+        </div>
+      </div>
+    </section>
 
-      <section class="card">
-        <h2>1) Titolare dei diritti</h2>
-        <p>
-          L’applicazione web (“App”) è opera dell’ingegno ai sensi della L. 633/1941 e successive modifiche.
-          Ideazione, progetto, sviluppo e documentazione: <strong>© 2025 Alessandro Pezzali</strong>.
-          L’autore detiene tutti i diritti di <strong>proprietà intellettuale e industriale</strong> sul codice sorgente,
-          sull’interfaccia, sulla logica algoritmica e sui materiali testuali e grafici di propria creazione.
-        </p>
-      </section>
+    <!-- 2) Veicolo -->
+    <section class="card">
+      <div class="inner">
+        <h2 id="t_sec2">2) Veicolo tipo da sollevare</h2>
 
-      <section class="card">
-        <h2>2) Marchi e denominazioni di terzi</h2>
-        <p>
-          <strong>CASCOS</strong> e i nomi di modelli o prodotti citati sono <strong>marchi dei rispettivi proprietari</strong>.
-          L’uso in questa App è esclusivamente descrittivo (<em>nominative fair use</em>) e
-          <strong>non implica affiliazione, approvazione o sponsorizzazione</strong>.
-        </p>
-      </section>
+        <div class="row">
+          <div>
+            <label id="t_secVeh" for="vehicleSel">Tipo di veicolo</label>
+            <select id="vehicleSel"></select>
+          </div>
+          <div>
+            <label id="t_gvw" for="inpGVW">Peso veicolo (kg)</label>
+            <input type="number" id="inpGVW" placeholder="es. 2200" min="600" step="10">
+          </div>
+        </div>
 
-      <section class="card">
-        <h2>3) Licenza d’uso concessa</h2>
-        <p>All’utilizzatore è concesso un diritto <strong>limitato, non esclusivo, non trasferibile</strong> di utilizzo della App per:</p>
-        <ul>
-          <li><strong>Preventivazione commerciale per la vendita</strong> di soluzioni CASCOS (pre-vendita, quotazioni, comparazioni);</li>
-          <li><strong>Dimostrazioni</strong> e attività formative interne;</li>
-          <li>Consultazione dei dati tecnici contenuti nella App e nei PDF collegati.</li>
-        </ul>
-        <p>Ogni ulteriore sfruttamento (riproduzione, modifica, distribuzione, sublicenza, pubblicazione in canali pubblici) richiede <strong>autorizzazione scritta</strong> dell’autore.</p>
-      </section>
+        <div class="row">
+          <div>
+            <label id="t_wb" for="inpWB">Passo (mm) / ingombro</label>
+            <input type="number" id="inpWB" placeholder="es. 2900" min="1800" step="10">
+          </div>
+          <div>
+            <label id="t_use" for="inpUse">Uso</label>
+            <select id="inpUse">
+              <option value="auto">Auto / SUV</option>
+              <option value="van">Van / Furgoni</option>
+              <option value="mpv">MPV / crossover</option>
+            </select>
+          </div>
+        </div>
 
-      <section class="card">
-        <h2>4) Restrizioni e tracciamento anti-diffusione</h2>
-        <ul>
-          <li>Vietate la <strong>copia</strong> e la <strong>redistribuzione</strong> dell’App o di parti di essa senza consenso scritto;</li>
-          <li>Vietati l’<strong>upload</strong> su repository pubblici e la condivisione su canali non autorizzati;</li>
-          <li>L’App può includere <strong>marcature e log tecnici</strong> esclusivamente per tutelare la proprietà intellettuale e prevenire diffusioni non autorizzate.</li>
-        </ul>
-        <p class="notice">L’uso per la <strong>preventivazione commerciale</strong> è consentito; la <strong>distribuzione del software</strong> non lo è, salvo permesso scritto dell’autore.</p>
-      </section>
+        <div class="row">
+          <div>
+            <label id="t_duty" for="inpDuty">Frequenza cicli/h</label>
+            <select id="inpDuty">
+              <option value="6">Intermittente (≈6 mov/h)</option>
+              <option value="10">Intensivo (≥10 mov/h)</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
 
-      <section class="card">
-        <h2>5) Responsabilità e disclaimer</h2>
-        <ul>
-          <li>I dati tecnici sono indicativi; fanno fede i documenti e le istruzioni ufficiali dei produttori;</li>
-          <li>La App è fornita “<em>così com’è</em>” senza garanzie espresse o implicite;</li>
-          <li>L’autore non risponde di danni diretti o indiretti derivanti dall’uso o da interpretazioni errate dei contenuti.</li>
-        </ul>
-      </section>
+        <div style="margin-top:12px">
+          <button class="btn primary" id="calcBtn" type="button">⚙️ <span id="t_calc">Calcola suggerimenti</span></button>
+          <button class="btn" id="resetBtn" type="button">↺ <span id="t_reset">Reset</span></button>
+        </div>
+      </div>
+    </section>
 
-      <section class="card">
-        <h2>6) Conformità normativa</h2>
-        <ul>
-          <li><strong>L. 633/1941</strong> (diritto d’autore) e s.m.i.;</li>
-          <li><strong>Regolamento (UE) 2017/1001</strong> sul marchio dell’Unione europea;</li>
-          <li>Direttiva 2001/29/CE (società dell’informazione);</li>
-          <li>Principi di <em>uso descrittivo</em> dei segni distintivi.</li>
-        </ul>
-      </section>
+    <!-- 3) Risultati -->
+    <section class="card" style="grid-column:1/-1">
+      <div class="inner">
+        <h2 id="t_sec3">3) Risultati e modelli consigliati</h2>
+        <div id="warnings" class="chips" aria-live="polite"></div>
+        <div class="table-wrap">
+          <table id="tbl" aria-label="Risultati e modelli consigliati">
+            <thead>
+              <tr>
+                <th id="t_th_model">Modello</th>
+                <th id="t_th_cap">Portata</th>
+                <th id="t_th_inter">Interasse<br>(mm)</th>
+                <th id="t_th_width">Larghezza tot.<br>(mm)</th>
+                <th id="t_th_height">Altezza utile<br>sotto traversa (mm)</th>
+                <th id="t_th_power">Alimentazione</th>
+                <th id="t_th_anchor">Anc. / Spessore<br>soletta</th>
+                <th id="t_th_arms">Bracci</th>
+                <th id="t_th_notes">Note</th>
+                <th>Sel.</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="hint" style="margin-top:8px">
+          I dati sono indicativi e non sostituiscono il manuale e la verifica del cantiere. Consulta sempre le istruzioni ufficiali CASCOS.
+        </div>
+      </div>
+    </section>
 
-      <section class="card">
-        <h2>7) Privacy minima</h2>
-        <p>L’App non raccoglie dati personali eccedenti la finalità di funzionamento. Eventuali log tecnici e marcature anti-diffusione, quando presenti, sono trattati unicamente per la tutela della proprietà intellettuale e per la sicurezza dell’applicazione.</p>
-      </section>
-
-      <section class="card">
-        <h2>8) Contatti e comunicazioni</h2>
-        <p>Richieste di autorizzazione, segnalazioni o questioni legali: <strong>Alessandro Pezzali</strong> — sito ufficiale:
-          <a href="https://www.alessandropezzali.it" target="_blank" rel="noopener">www.alessandropezzali.it</a></p>
-      </section>
-
-      <footer>© 2025 Alessandro Pezzali — Tutti i diritti riservati. | È vietata la diffusione non autorizzata.</footer>
-    </article>
-
-    <!-- ================= ENGLISH ================= -->
-    <article id="doc-en" lang="en" data-lang="en" hidden>
-      <p class="muted">Legal notice for “CASCOS — 2-Post Lift Configurator (PWA)”.</p>
-      <section class="card"><h2>1) Rights holder</h2><p>The web application (“App”) is a work of authorship protected under Italian Copyright Law (L. 633/1941). Design, development and documentation: <strong>© 2025 Alessandro Pezzali</strong>. The author retains all <strong>intellectual and industrial property</strong> rights in the source code, UI, algorithms and original texts/graphics.</p></section>
-      <section class="card"><h2>2) Third-party trademarks</h2><p><strong>CASCOS</strong> and any product/model names are <strong>trademarks of their respective owners</strong>. Their use here is purely descriptive (<em>nominative fair use</em>) and <strong>does not imply affiliation, approval or sponsorship</strong>.</p></section>
-      <section class="card"><h2>3) License grant</h2><p>A <strong>limited, non-exclusive, non-transferable</strong> license is granted to use the App for:</p><ul><li><strong>Commercial quotation/estimation</strong> for CASCOS product sales (pre-sales, quotes, comparisons);</li><li><strong>Demonstrations</strong> and internal training;</li><li>Consultation of the technical data in the App and linked PDFs.</li></ul><p>Any further exploitation (reproduction, modification, distribution, sublicensing, public publishing) requires the author’s <strong>prior written consent</strong>.</p></section>
-      <section class="card"><h2>4) Restrictions & anti-leak tracking</h2><ul><li>No <strong>copying</strong> or <strong>redistribution</strong> of the App or its components without written consent;</li><li>No uploads to public repositories or sharing on unauthorised channels;</li><li>The App may include <strong>watermarking and technical logs</strong> solely to protect IP and prevent unauthorised distribution.</li></ul><p class="notice">Use for <strong>commercial quotation</strong> is allowed; <strong>software distribution</strong> is not, unless expressly authorised.</p></section>
-      <section class="card"><h2>5) Disclaimer</h2><ul><li>Data are indicative; official manufacturer documentation prevails;</li><li>The App is provided “<em>as is</em>” with no express or implied warranties;</li><li>The author is not liable for direct or indirect damages arising from use or misinterpretation.</li></ul></section>
-      <section class="card"><h2>6) Compliance</h2><ul><li><strong>Italian Law 633/1941</strong> (copyright) as amended;</li><li><strong>Regulation (EU) 2017/1001</strong> on the EU trade mark;</li><li>Directive 2001/29/EC (information society);</li><li>Principles of <em>descriptive use</em> of signs.</li></ul></section>
-      <section class="card"><h2>7) Minimal privacy</h2><p>The App does not collect personal data beyond what is necessary for its operation. Any technical logs/watermarks, where present, are processed solely to protect IP and ensure application security.</p></section>
-      <section class="card"><h2>8) Contacts</h2><p>Authorisations or legal matters: <strong>Alessandro Pezzali</strong> — official website: <a href="https://www.alessandropezzali.it" target="_blank" rel="noopener">www.alessandropezzali.it</a></p></section>
-      <footer>© 2025 Alessandro Pezzali — All rights reserved. | Unauthorised distribution is prohibited.</footer>
-    </article>
-
-    <!-- ================= ESPAÑOL ================= -->
-    <article id="doc-es" lang="es" data-lang="es" hidden>
-      <p class="muted">Documento legal para “CASCOS — Configurador de 2 columnas (PWA)”.</p>
-      <section class="card"><h2>1) Titular de los derechos</h2><p>La aplicación web (“App”) es una obra protegida por la Ley de Propiedad Intelectual italiana (L. 633/1941). Diseño, desarrollo y documentación: <strong>© 2025 Alessandro Pezzali</strong>. El autor mantiene todos los derechos de <strong>propiedad intelectual e industrial</strong> sobre el código fuente, la interfaz, la lógica algorítmica y los materiales originales.</p></section>
-      <section class="card"><h2>2) Marcas de terceros</h2><p><strong>CASCOS</strong> y los nombres de productos o modelos citados son <strong>marcas de sus respectivos titulares</strong>. Su uso aquí es meramente descriptivo (<em>nominative fair use</em>) y <strong>no implica afiliación, aprobación ni patrocinio</strong>.</p></section>
-      <section class="card"><h2>3) Licencia de uso</h2><p>Se concede una licencia <strong>limitada, no exclusiva e intransferible</strong> para utilizar la App con fines de:</p><ul><li><strong>Presupuestación comercial para la venta</strong> de soluciones CASCOS (preventas, cotizaciones, comparativas);</li><li><strong>Demostraciones</strong> y formación interna;</li><li>Consulta de los datos técnicos de la App y de los PDF vinculados.</li></ul><p>Cualquier otro aprovechamiento (reproducción, modificación, distribución, sublicencia, publicación en canales públicos) requiere <strong>autorización escrita</strong> del autor.</p></section>
-      <section class="card"><h2>4) Restricciones y seguimiento anti-difusión</h2><ul><li>Prohibida la <strong>copia</strong> o <strong>redistribución</strong> de la App sin consentimiento escrito;</li><li>Prohibido subirla a repositorios públicos o compartirla en canales no autorizados;</li><li>La App puede incluir <strong>marcas de agua y registros técnicos</strong> únicamente para proteger la propiedad intelectual y prevenir difusiones no autorizadas.</li></ul><p class="notice">El uso para <strong>presupuestación comercial</strong> está permitido; la <strong>distribución del software</strong> no lo está, salvo autorización expresa.</p></section>
-      <section class="card"><h2>5) Exención de responsabilidad</h2><ul><li>Los datos técnicos son orientativos; prevalece la documentación oficial del fabricante;</li><li>La App se proporciona “<em>tal cual</em>” sin garantías expresas ni implícitas;</li><li>El autor no responde por daños directos o indirectos derivados del uso o mala interpretación.</li></ul></section>
-      <section class="card"><h2>6) Cumplimiento normativo</h2><ul><li><strong>Ley italiana 633/1941</strong> (derecho de autor);</li><li><strong>Reglamento (UE) 2017/1001</strong> sobre la marca de la Unión Europea;</li><li>Directiva 2001/29/CE (sociedad de la información);</li><li>Principios de <em>uso descriptivo</em> de los signos distintivos.</li></ul></section>
-      <section class="card"><h2>7) Privacidad mínima</h2><p>La App no recoge datos personales más allá de lo necesario para su funcionamiento. Los posibles registros técnicos y marcas de agua se tratan exclusivamente para proteger la propiedad intelectual y la seguridad de la aplicación.</p></section>
-      <section class="card"><h2>8) Contacto</h2><p>Autorizaciones o cuestiones legales: <strong>Alessandro Pezzali</strong> — sitio oficial: <a href="https://www.alessandropezzali.it" target="_blank" rel="noopener">www.alessandropezzali.it</a></p></section>
-      <footer>© 2025 Alessandro Pezzali — Todos los derechos reservados. | Se prohíbe la distribución no autorizada.</footer>
-    </article>
-
-    <!-- ================= FRANÇAIS ================= -->
-    <article id="doc-fr" lang="fr" data-lang="fr" hidden>
-      <p class="muted">Document juridique pour « CASCOS — Configurateur 2 colonnes (PWA) ».</p>
-      <section class="card"><h2>1) Titulaire des droits</h2><p>L’application web (« App ») est une œuvre protégée par la loi italienne sur le droit d’auteur (L. 633/1941). Conception, développement et documentation : <strong>© 2025 Alessandro Pezzali</strong>. L’auteur détient tous les droits de <strong>propriété intellectuelle et industrielle</strong> sur le code source, l’interface, la logique algorithmique et les contenus originaux.</p></section>
-      <section class="card"><h2>2) Marques de tiers</h2><p><strong>CASCOS</strong> et les noms de produits/modèles cités sont des <strong>marques de leurs propriétaires respectifs</strong>. Leur utilisation est uniquement descriptive (<em>nominative fair use</em>) et <strong>n’implique aucune affiliation, approbation ou parrainage</strong>.</p></section>
-      <section class="card"><h2>3) Licence d’utilisation</h2><p>Une licence <strong>limitée, non exclusive et non transférable</strong> est accordée pour :</p><ul><li><strong>La chiffrage/estimation commerciale</strong> en vue de la vente de solutions CASCOS (avant-vente, devis, comparatifs) ;</li><li><strong>Démonstrations</strong> et formation interne ;</li><li>Consultation des données techniques de l’App et des PDF liés.</li></ul><p>Toute autre exploitation (reproduction, modification, distribution, sous-licence, publication publique) nécessite l’<strong>autorisation écrite</strong> de l’auteur.</p></section>
-      <section class="card"><h2>4) Restrictions & traçabilité anti-diffusion</h2><ul><li>Interdiction de <strong>copier</strong> ou <strong>redistribuer</strong> l’App sans consentement écrit ;</li><li>Interdiction de publication sur des dépôts publics ou de partage sur des canaux non autorisés ;</li><li>L’App peut inclure des <strong>marquages et journaux techniques</strong> exclusivement pour protéger la PI et prévenir les diffusions non autorisées.</li></ul><p class="notice">L’usage pour la <strong>chiffrage commerciale</strong> est autorisé ; la <strong>distribution du logiciel</strong> ne l’est pas, sauf autorisation expresse.</p></section>
-      <section class="card"><h2>5) Avertissement</h2><ul><li>Les données sont indicatives ; la documentation officielle du fabricant prévaut ;</li><li>L’App est fournie « <em>en l’état</em> » sans garantie expresse ou implicite ;</li><li>L’auteur n’est pas responsable des dommages directs ou indirects dus à l’usage ou à une mauvaise interprétation.</li></ul></section>
-      <section class="card"><h2>6) Conformité</h2><ul><li><strong>Loi italienne 633/1941</strong> (droit d’auteur) ;</li><li><strong>Règlement (UE) 2017/1001</strong> sur la marque de l’Union européenne ;</li><li>Directive 2001/29/CE (société de l’information) ;</li><li>Principes d’<em>usage descriptif</em> des signes distinctifs.</li></ul></section>
-      <section class="card"><h2>7) Vie privée minimale</h2><p>L’App ne collecte pas de données personnelles au-delà de ce qui est nécessaire à son fonctionnement. Les éventuels journaux techniques et marquages sont traités uniquement pour protéger la propriété intellectuelle et la sécurité de l’application.</p></section>
-      <section class="card"><h2>8) Contacts</h2><p>Autorisations ou questions juridiques : <strong>Alessandro Pezzali</strong> — site officiel : <a href="https://www.alessandropezzali.it" target="_blank" rel="noopener">www.alessandropezzali.it</a></p></section>
-      <footer>© 2025 Alessandro Pezzali — Tous droits réservés. | Diffusion non autorisée interdite.</footer>
-    </article>
+    <!-- 4) Documenti -->
+    <section class="card">
+      <div class="inner">
+        <h2>4) Documenti utili</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <a class="btn" href="./docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">🏗️ Schema fondazioni</a>
+          <a class="btn" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">📘 Manuale tecnico</a>
+          <a class="btn" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
+          <a class="btn" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
+          <a class="btn" id="armsGeneralBtn" href="./ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
+          <a class="btn" href="./LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza (completa)</a>
+        </div>
+      </div>
+    </section>
   </main>
 
+  <footer class="wrap"><div>© Cascos_Configuratore — PWA open-source.</div></footer>
+
+  <!-- Modal “Informazioni legali” -->
+  <div class="modal-backdrop" id="legalModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+      <header>
+        <h3 id="legalTitle">Informazioni legali</h3>
+        <button class="close" id="legalClose" aria-label="Chiudi">✕</button>
+      </header>
+      <div class="body">
+        <!-- IT -->
+        <div class="legal lang-it">
+          <p><strong>Uso consentito:</strong> preventivazione commerciale per la vendita, dimostrazioni e formazione interna.</p>
+          <p><strong>Marchi:</strong> “CASCOS” e le denominazioni dei modelli sono dei rispettivi proprietari; uso descrittivo, nessuna affiliazione.</p>
+          <p><strong>Divieti:</strong> vietata copia/redistribuzione dell’app senza autorizzazione scritta. Possibile marcatura anti-diffusione.</p>
+          <p><strong>Responsabilità:</strong> dati indicativi; valgono i documenti ufficiali dei produttori.</p>
+        </div>
+        <!-- EN -->
+        <div class="legal lang-en" hidden>
+          <p><strong>Permitted use:</strong> commercial quoting/sales proposals, demos and internal training.</p>
+          <p><strong>Trademarks:</strong> “CASCOS” and model names belong to their owners; descriptive use only, no affiliation.</p>
+          <p><strong>Restrictions:</strong> copying/redistribution of the app is prohibited without written consent. Anti–leak marking may apply.</p>
+          <p><strong>Disclaimer:</strong> data is indicative; official manufacturer documents prevail.</p>
+        </div>
+        <!-- ES -->
+        <div class="legal lang-es" hidden>
+          <p><strong>Uso permitido:</strong> presupuestación comercial para la venta, demostraciones y formación interna.</p>
+          <p><strong>Marcas:</strong> “CASCOS” y los nombres de modelos pertenecen a sus titulares; uso descriptivo, sin afiliación.</p>
+          <p><strong>Restricciones:</strong> prohibida la copia/distribución sin autorización escrita. Posible marcado anti–difusión.</p>
+          <p><strong>Descargo:</strong> datos indicativos; prevalecen los documentos oficiales del fabricante.</p>
+        </div>
+        <!-- FR -->
+        <div class="legal lang-fr" hidden>
+          <p><strong>Usage autorisé :</strong> chiffrage commercial pour la vente, démonstrations et formation interne.</p>
+          <p><strong>Marques :</strong> “CASCOS” et les noms des modèles appartiennent à leurs propriétaires ; usage descriptif, aucune affiliation.</p>
+          <p><strong>Restrictions :</strong> copie/distribution interdites sans accord écrit. Marquage anti–diffusion possible.</p>
+          <p><strong>Responsabilité :</strong> données indicatives ; les documents officiels du constructeur prévalent.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn" id="legalFullLink" href="./LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza completa</a>
+        <button class="btn primary" id="legalOk" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script utility: lingua modale + fix tap PDF su iPhone -->
   <script>
     (function(){
-      const qs = s => document.querySelector(s);
-      const qsa = s => Array.from(document.querySelectorAll(s));
-      const sections = qsa('article[data-lang]');
-      const pills = qsa('.pill[data-lang]');
-      const LANGS = ['it','en','es','fr'];
-
-      const uiText = {
-        it: { title:'Informazioni legali e Licenza d’uso', jur:'Giurisdizione: IT / UE', back:'← Torna al configuratore', backAria:'Torna al configuratore' },
-        en: { title:'Legal information & License',          jur:'Jurisdiction: IT / EU law', back:'← Back to configurator', backAria:'Back to configurator' },
-        es: { title:'Información legal y Licencia de uso',  jur:'Jurisdicción: IT / UE',     back:'← Volver al configurador', backAria:'Volver al configurador' },
-        fr: { title:'Informations légales et Licence',      jur:'Juridiction : IT / UE',     back:'← Retour au configurateur', backAria:'Retour au configurateur' }
-      };
-
-      function show(lang){
-        localStorage.setItem('license_lang', lang);
-        document.documentElement.lang = lang;
-
-        // toggle pills + sections
-        pills.forEach(p=>{
-          const active = p.dataset.lang === lang;
-          p.setAttribute('aria-selected', active ? 'true' : 'false');
-          if (active) p.setAttribute('aria-current','true'); else p.removeAttribute('aria-current');
-        });
-        sections.forEach(a=>{ a.hidden = a.dataset.lang !== lang; });
-
-        // localize header text + back button
-        const t = uiText[lang] || uiText.it;
-        qs('#pageTitle').textContent = t.title;
-        qs('#chipJur').textContent  = t.jur;
-        const back = qs('#backLink');
-        if (back){ back.textContent = t.back; back.setAttribute('aria-label', t.backAria); }
-
-        // keep URL in sync
-        const url = new URL(location.href);
-        url.searchParams.set('lang', lang);
-        history.replaceState(null, '', url.toString());
+      const modal = document.getElementById('legalModal');
+      const openBtn = document.getElementById('legalBtn');
+      const closeBtn = document.getElementById('legalClose');
+      const okBtn = document.getElementById('legalOk');
+      const langSel = document.getElementById('langSel');
+      const fullLink = document.getElementById('legalFullLink');
+      function currentLang(){
+        const l = document.documentElement.lang || (langSel && langSel.value) || 'it';
+        return ['it','en','es','fr'].includes(l) ? l : 'it';
       }
+      function syncLegalLang(){
+        const lang = currentLang();
+        document.querySelectorAll('.modal .legal').forEach(el => {
+          el.hidden = !el.classList.contains('lang-' + lang);
+        });
+        if (fullLink) fullLink.href = './LICENSE.html#' + lang;
+      }
+      function open(){ syncLegalLang(); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+      function close(){ modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+      openBtn && openBtn.addEventListener('click', open);
+      closeBtn && closeBtn.addEventListener('click', close);
+      okBtn && okBtn.addEventListener('click', close);
+      modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
+      langSel && langSel.addEventListener('change', syncLegalLang);
 
-      pills.forEach(p=>p.addEventListener('click', ()=>show(p.dataset.lang)));
-
-      const initial = new URL(location.href).searchParams.get('lang')
-        || localStorage.getItem('license_lang')
-        || 'it';
-      show(LANGS.includes(initial)?initial:'it');
+      // Evita che i link nella tabella attivino il click sulla riga (stampa)
+      const rows = document.getElementById('rows');
+      rows && rows.addEventListener('click', (e) => {
+        if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); }
+      });
     })();
   </script>
+
+  <!-- App logic -->
+  <script src="./app.js" defer></script>
+
+  <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
 </body>
 </html>
