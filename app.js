@@ -1,4 +1,4 @@
-// app.js — v6.12
+// app.js — v6.12 (fix link PDF + mapping)
 // Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
 // + i18n + share/csv/pdf/save + PWA
 
@@ -25,10 +25,9 @@
     withbase:   './docs/scheda_con_pedana.pdf',
     baseless:   './docs/scheda_senza_pedana_2022.pdf',
     manuale:    './docs/manuale_tecnico_presentazione.pdf',
-    fondazioni: './docs/fondazioni_cascos_c4c.pdf',
+    // 🔧 FIX: il file è dentro ARMS_FILES (vedi repo)
+    fondazioni: './ARMS_FILES/fondazioni_cascos_c4c.pdf',
     arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
-    // alternativa GitHub:
-    // arms_general: 'https://github.com/pezzaliapp/Cascos_Configuratore/blob/main/ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf?raw=1'
   };
 
   // ------------------ ARMS (misure bracci) ------------------
@@ -45,7 +44,6 @@
     'C5.5':             ARMS_PATH + 'misure_C5.5.pdf',
     'C5 WAGON':         ARMS_PATH + 'misure_C5WAGON.pdf',
     'C5 XLWAGON':       ARMS_PATH + 'misure_C5XLWAGON.pdf',
-    'C5.5 WAGON':       ARMS_PATH + 'misure_C5.5WAGON.pdf',
 
     // --- senza basamento / sbalzo libero ---
     'C3.2S':            ARMS_PATH + 'misure_C3.2S.pdf',
@@ -60,7 +58,7 @@
     'C5S':              ARMS_PATH + 'misure_C5S.pdf',
     'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
     'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
-    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',     // alias se nel dataset
+    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',     // alias robusto
     'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',  // alias citato
     'C7S':              ARMS_PATH + 'misure_C7S.pdf',
 
@@ -73,33 +71,34 @@
 
   // ------------------ Schede commerciali per modello ------------------
   const SHEET_FILES = {
-  withbase: {
-    'C3.2':         './docs/scheda_C3.2_con_pedana.pdf',
-    'C3.2 Comfort': './docs/scheda_C3.2CONFORT_con_pedana.pdf',
-    'C3.5':         './docs/scheda_C3.5_con_pedana.pdf',
-    'C3.5XL':       './docs/scheda_C3.5XL_con_pedana.pdf',
-    'C4':           './docs/scheda_C4_con_pedana.pdf',
-    'C4XL':         './docs/scheda_C4XL_con_pedana.pdf',
-    'C5':           './docs/scheda_C5_con_pedana.pdf',        // ✅ AGGIUNTO
-    'C5 WAGON':     './docs/scheda_C5WAGON_con_pedana.pdf',
-    'C5 XLWAGON':   './docs/scheda_C5XL_WAGON_con_pedana.pdf',
-    'C5.5':         './docs/scheda_C5.5_con_pedana.pdf',
-    'C5.5 WAGON':   './docs/scheda_C5.5WAGON_con_pedana.pdf'
-  },
-  baseless: {
-    'C3.2S':         './docs/scheda_C3.2S_senza_pedana.pdf',
-    'C3.2S CONFORT': './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
-    'C3.2S SPORT':   './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
-    'C3.5S':         './docs/scheda_C3.5S_senza_pedana.pdf',
-    'C3.5SXL':       './docs/scheda_C3.5SXL_senza_pedana.pdf',
-    'C4S':           './docs/scheda_C4S_senza_pedana.pdf',
-    'C4SXL':         './docs/scheda_C4.5SXL_senza_pedana.pdf',
-    'C5S':           './docs/scheda_C5S_senza_pedana.pdf',
-    'C5.5S':         './docs/scheda_C5.5S_senza_pedana.pdf',
-    'C5.5SWAGON':    './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
-    'C5SWAGON':      './docs/scheda_C5SWAGON_senza_pedana.pdf'
-  }
-};
+    withbase: {
+      'C3.2':         './docs/scheda_C3.2_con_pedana.pdf',
+      'C3.2 Comfort': './docs/scheda_C3.2CONFORT_con_pedana.pdf',
+      'C3.5':         './docs/scheda_C3.5_con_pedana.pdf',
+      'C3.5XL':       './docs/scheda_C3.5XL_con_pedana.pdf',
+      'C4':           './docs/scheda_C4_con_pedana.pdf',
+      'C4XL':         './docs/scheda_C4XL_con_pedana.pdf',
+      'C5':           './docs/scheda_C5_con_pedana.pdf',
+      'C5 WAGON':     './docs/scheda_C5WAGON_con_pedana.pdf',
+      'C5.5':         './docs/scheda_C5.5_con_pedana.pdf',
+      'C5.5 WAGON':   './docs/scheda_C5.5WAGON_con_pedana.pdf'
+    },
+    baseless: {
+      'C3.2S':         './docs/scheda_C3.2S_senza_pedana.pdf',
+      'C3.2S CONFORT': './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
+      'C3.2S SPORT':   './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
+      'C3.5S':         './docs/scheda_C3.5S_senza_pedana.pdf',
+      'C3.5SXL':       './docs/scheda_C3.5SXL_senza_pedana.pdf',
+      'C4S':           './docs/scheda_C4S_senza_pedana.pdf',
+      // 🔧 FIX: refuso nel nome file (era C4.5SXL)
+      'C4SXL':         './docs/scheda_C4SXL_senza_pedana.pdf',
+      'C4SVS':         './docs/scheda_C4SVS_senza_pedana.pdf',
+      'C5S':           './docs/scheda_C5S_senza_pedana.pdf',
+      'C5.5S':         './docs/scheda_C5.5S_senza_pedana.pdf',
+      'C5.5SWAGON':    './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
+      'C5SWAGON':      './docs/scheda_C5SWAGON_senza_pedana.pdf'
+    }
+  };
 
   // Pagine “schede generali” nel Manuale (fallback)
   const MANUAL_PAGES = {
@@ -268,6 +267,7 @@
 
   // ------------------ dataset ------------------
   let MODELS = [];
+  // torniamo al fetch “semplice” che ti funzionava
   fetch('./models.json')
     .then(r => r.json())
     .then(d => { MODELS = d || []; initVehicleFilter(); applyLang('it'); })
@@ -357,7 +357,7 @@
 
   function fitScore(m) {
     const gvw = +($('#inpGVW')?.value || 0);
-    const wb  = +($('#inpWB')?.value || 0);
+    the wb  = +($('#inpWB')?.value || 0);
     let s = 0;
     if (gvw > 0) {
       const head = (m.portata - gvw) / (m.portata || 1);
