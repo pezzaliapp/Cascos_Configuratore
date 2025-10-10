@@ -1,4 +1,4 @@
-// app.js — v6.3 (Vehicle filter + auto-fill + per-model PDFs "Misure bracci" + page map + i18n + share/csv/pdf/save + PWA)
+// app.js — v7 (Vehicle filter + auto-fill + per-model "Misure bracci" + manual fallback + i18n + share/csv/pdf/save + PWA)
 (function () {
   'use strict';
 
@@ -10,54 +10,64 @@
 
   // ------------------ PDF paths ------------------
   const PDF = {
-    // Globali (fallback)
     withbase: './docs/scheda_con_pedana.pdf',
     baseless: './docs/scheda_senza_pedana_2022.pdf',
     manuale: './docs/manuale_tecnico_presentazione.pdf',
     fondazioni: './docs/fondazioni_cascos_c4c.pdf'
   };
 
-  // 📐 PDF “Misure bracci” per singolo modello (metti i file in ./docs/misure/)
-  // Se un modello manca qui, l’app usa il manuale in fallback.
+  // 📐 PDF “Misure bracci” per singolo modello (usa la cartella ./ARMS_FILES/)
+  // Se un modello manca qui, l’app usa il Manuale in fallback (ARMS_PAGES oppure #search).
   const ARMS_FILES = {
-    // Con basamento / pedana
-    "C3.2": "./docs/misure/misure_C3_2.pdf",
-    "C3.2 Comfort": "./docs/misure/misure_C3_2_Comfort.pdf",
-    "C3.5": "./docs/misure/misure_C3_5.pdf",
-    "C3.5XL": "./docs/misure/misure_C3_5XL.pdf",         // TODO: aggiungere file
-    "C4": "./docs/misure/misure_C4.pdf",                 // TODO: aggiungere file
-    "C4XL": "./docs/misure/misure_C4XL.pdf",             // TODO: aggiungere file
-    "C5": "./docs/misure/misure_C5.pdf",                 // TODO: aggiungere file
-    "C5.5": "./docs/misure/misure_C5_5.pdf",             // TODO: aggiungere file
-    "C5 WAGON": "./docs/misure/misure_C5_WAGON.pdf",     // TODO: aggiungere file
-    "C5.5 WAGON": "./docs/misure/misure_C5_5_WAGON.pdf", // TODO: aggiungere file
-    // Senza basamento / sbalzo libero
-    "C3.2S": "./docs/misure/misure_C3_2S.pdf",           // TODO: aggiungere file
-    "C3.5S": "./docs/misure/misure_C3_5S.pdf",           // TODO: aggiungere file
-    "C4S": "./docs/misure/misure_C4S.pdf",               // TODO: aggiungere file
-    "C5.5S": "./docs/misure/misure_C5_5S.pdf"            // TODO: aggiungere file
+    // Serie 3.2
+    "C3.2": "./ARMS_FILES/misure_C3.2.pdf",
+    "C3.2 Comfort": "./ARMS_FILES/misure_C3.2_Comfort.pdf",
+    "C3.2S": "./ARMS_FILES/misure_C3.2S.pdf",
+    "C3.2S Confort": "./ARMS_FILES/misure_C3.2S_CONFORT.pdf",
+    "C3.2SVS": "./ARMS_FILES/misure_C3.2SVS_PREMIUM.pdf",
+
+    // Serie 3.5
+    "C3.5": "./ARMS_FILES/misure_C3.5.pdf",
+    "C3.5S": "./ARMS_FILES/misure_C3.5S.pdf",
+    "C3.5XL": "./ARMS_FILES/misure_C3.5XL.pdf",
+    "C3.5SXL": "./ARMS_FILES/misure_C3.5SXL.pdf",
+
+    // Serie 4
+    "C4": "./ARMS_FILES/misure_C4.pdf",
+    "C4S": "./ARMS_FILES/misure_C4S.pdf",
+    "C4SVS": "./ARMS_FILES/misure_C4SVS.pdf",
+    "C4XL": "./ARMS_FILES/misure_C4XL.pdf",
+    "C4SXL": "./ARMS_FILES/misure_C4SXL.pdf",
+
+    // Serie 5 / 5.5 / WAGON
+    // (non ho ricevuto misure_C5.pdf "liscio": resterà in fallback Manuale)
+    "C5 WAGON": "./ARMS_FILES/misure_C5WAGON.pdf",
+    "C5XLWAGON": "./ARMS_FILES/misure_C5XLWAGON.pdf",
+    "C5.5": "./ARMS_FILES/misure_C5.5.pdf",
+    "C5.5S": "./ARMS_FILES/misure_C5.5S.pdf",
+    "C5.5S GLOBAL": "./ARMS_FILES/misure_C5.5SGLOBAL.pdf",
+    "C5.5WAGON": "./ARMS_FILES/misure_C5.5WAGON.pdf",
+    "C5.5S WAGON": "./ARMS_FILES/misure_C35.5SWAGON.pdf", // nome file pervenuto
+    "C5S WAGON": "./ARMS_FILES/misure_C5SWAGON.pdf",
+
+    // Serie 7
+    "C7S": "./ARMS_FILES/misure_C7S.pdf",
+
+    // Documenti generali utili
+    "GENERAL": "./ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf",
+    "TAMPONI": "./ARMS_FILES/MISURE TAMPONI.pdf"
   };
 
-  // 📖 Pagine nel Manuale per le tavole “bracci” (fallback se non c’è il PDF singolo).
-  // Certe: C3.2 = 7, C3.2 Comfort = 13, C3.5 = 19. Le altre rimangono a ricerca (#search).
+  // 📖 Pagine nel Manuale come fallback (se manca il PDF singolo)
+  // Certe: C3.2 = 7, C3.2 Comfort = 13, C3.5 = 19. Le altre via #search.
   const ARMS_PAGES = {
     "C3.2": 7,
     "C3.2 Comfort": 13,
-    "C3.5": 19,
-    "C3.5XL": null,
-    "C4": null,
-    "C4XL": null,
-    "C5": null,
-    "C5.5": null,
-    "C5 WAGON": null,
-    "C5.5 WAGON": null,
-    "C3.2S": null,
-    "C3.5S": null,
-    "C4S": null,
-    "C5.5S": null
+    "C3.5": 19
+    // resto: null => #search=<modello>
   };
 
-  // 🔗 Scheda “modello → PDF singolo” (schede commerciali) — opzionale; manteniamo i PDF consolidati come fallback
+  // 🔗 Schede commerciali dedicate (opzionali), altrimenti fallback ai PDF consolidati
   const SHEET_FILES = {
     withbase: {
       "C3.2": "./docs/scheda_C3.2_con_pedana.pdf",
@@ -94,8 +104,7 @@
     return p ? `${PDF.manuale}#page=${p}` : `${PDF.manuale}#search=${encodeURIComponent(modelId)}`;
   }
   function buildArmsUrl(modelId) {
-    const file = ARMS_FILES[modelId];
-    if (file) return file;
+    if (ARMS_FILES[modelId]) return ARMS_FILES[modelId];
     const p = ARMS_PAGES[modelId];
     return p ? `${PDF.manuale}#page=${p}` : `${PDF.manuale}#search=${encodeURIComponent(modelId)}`;
   }
@@ -191,7 +200,7 @@
       lang: 'Idioma', save: 'Salvar', readme_btn: 'Leia-me', install: 'Instalar',
       sec1: '1) Restrições da oficina',
       h: 'Altura do teto (mm)', w: 'Largura da baia (mm)',
-      conc: 'Qualidade do concreto', conc_hint: 'Para 3,2–5,5 t usar chumbadores em C20/25.',
+      conc: 'Qualidade do concreto', conc_hint: 'Para modelos 3,2–5,5 t usar chumbadores em C20/25.',
       th: 'Espessura da laje (mm)', pow: 'Alimentação', base: 'Tipo de coluna',
       tip: 'Dica: largura da baia ≥ 3350 mm para C3.2–C4; para entre-eixos longo use XL/WAGON.',
       secVeh: 'Tipo de veículo',
@@ -269,7 +278,7 @@
     suv:['C3.5','C4','C4XL','C5','C5.5','C5.5S'],
     mpv:['C3.5','C4','C4XL'],
     van:['C4XL','C5','C5.5','C5 WAGON'],
-    lcv:['C5','C5.5','C5 WAGON']
+    lcv:['C5','C5.5','C5 WAGON','C5XLWAGON','C5.5WAGON','C5.5S WAGON','C5S WAGON']
   };
 
   function initVehicleFilter() {
