@@ -9,25 +9,18 @@
   <!-- Colori e tema -->
   <meta name="theme-color" content="#0b1022">
   <meta name="background-color" content="#0b1022">
+  <meta name="description" content="Lift Configurator — Strumento professionale per la preventivazione e selezione sollevatori a 2 colonne CASCOS. Sviluppato da pezzaliAPP.com">
+  <meta name="author" content="Alessandro Pezzali — pezzaliAPP.com">
 
-  <!-- Icona favicon e PWA -->
+  <!-- PWA / icone -->
+  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
-  <link rel="manifest" href="./manifest.webmanifest">
 
-  <!-- Descrizione SEO -->
-  <meta name="description" content="Lift Configurator — Strumento professionale per la preventivazione e selezione sollevatori a 2 colonne CASCOS. Sviluppato da pezzaliAPP.com">
-
-  <!-- Autore -->
-  <meta name="author" content="Alessandro Pezzali — pezzaliAPP.com">
-</head>
-  <!-- iOS PWA extras -->
+  <!-- iOS PWA extras (DEVONO stare nel <head>) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
-
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icons/icon-192.png">
 
   <style>
     :root{ --bg:#0b1022; --card:#111735; --ink:#eef2ff; --muted:#9fb0d9; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --line:#1d2a55; --focus:#2dd4bf; }
@@ -42,7 +35,6 @@
       .row{grid-template-columns:1fr !important}
       nav{gap:6px !important;flex-wrap:wrap}
       .wrap{padding-left:12px;padding-right:12px}
-      /* rimosso table{font-size:14px} — gestito dagli override sotto */
     }
     .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px #0003}
     .card h2{margin:0 0 8px 0;font-size:18px;line-height:1.2}
@@ -67,67 +59,29 @@
     .lang{display:flex;gap:8px;align-items:center}
     @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
 
-    /* ==== Tipografia fluida & spazi (override) ==== */
+    /* Tipografia fluida */
     html { font-size: clamp(14px, 0.9vw + 12px, 16px); }
     body { font-size: 0.95rem; line-height: 1.5; }
-
     h1 { font-size: clamp(18px, 1.2vw + 16px, 26px); }
     .card h2 { font-size: clamp(16px, 0.8vw + 14px, 20px); }
-
-    .btn {
-      font-size: clamp(13px, 0.4vw + 12px, 15px);
-      padding: clamp(8px, 0.6vw + 6px, 12px) clamp(10px, 0.8vw + 8px, 14px);
-      border-radius: 12px;
-    }
+    .btn { font-size: clamp(13px, 0.4vw + 12px, 15px); padding: clamp(8px, 0.6vw + 6px, 12px) clamp(10px, 0.8vw + 8px, 14px); border-radius: 12px; }
     .btn.primary { border-width: 1px; }
-
     label { font-size: clamp(13px, 0.2vw + 12px, 14px); }
     .hint, .tag { font-size: clamp(11px, 0.2vw + 10px, 12px); }
     .tag { padding: 2px 8px; }
-
-    input, select {
-      font-size: clamp(14px, 0.3vw + 12px, 15px);
-      padding: clamp(10px, 0.6vw + 8px, 12px);
-      border-radius: 12px;
-    }
-
+    input, select { font-size: clamp(14px, 0.3vw + 12px, 15px); padding: clamp(10px, 0.6vw + 8px, 12px); border-radius: 12px; }
     .grid { gap: clamp(10px, 1.2vw, 16px); }
     .row  { gap: clamp(8px, 1vw, 12px); }
-
     .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch }
     table { min-width: 880px; }
-    th, td {
-      padding: clamp(8px, 0.8vw, 12px);
-      line-height: 1.35;
-    }
+    th, td { padding: clamp(8px, 0.8vw, 12px); line-height: 1.35; }
     th { font-size: clamp(12px, 0.3vw + 11px, 13.5px); }
     td { font-size: clamp(13px, 0.3vw + 12px, 15px); }
     td .btn { padding: 2px 8px; font-size: 12px; }
-
     td small, .hint { line-height: 1.25 }
-
-    @media (max-width: 900px) {
-      .wrap { padding-left: 12px; padding-right: 12px; }
-      header .wrap { gap: 8px; }
-      nav { gap: 6px; flex-wrap: wrap; }
-    }
-
-    @media (max-width: 680px) {
-      .row { grid-template-columns: 1fr !important; }
-      h1 { font-size: clamp(18px, 5vw, 22px); }
-      .card .inner { padding: 12px; }
-      table { min-width: 760px; }
-      th, td { padding: 8px; }
-      .chips { gap: 6px; }
-      .btn { padding: 8px 10px; border-radius: 10px; }
-      .tag { padding: 2px 7px; }
-    }
-
-    @media (min-width: 1300px) {
-      .wrap { max-width: 1200px; }
-      table { min-width: 960px; }
-      th, td { padding: 12px 14px; }
-    }
+    @media (max-width: 900px) { .wrap { padding-left: 12px; padding-right: 12px; } header .wrap { gap: 8px; } nav { gap: 6px; flex-wrap: wrap; } }
+    @media (max-width: 680px) { .row { grid-template-columns: 1fr !important; } h1 { font-size: clamp(18px, 5vw, 22px); } .card .inner { padding: 12px; } table { min-width: 760px; } th, td { padding: 8px; } .chips { gap: 6px; } .btn { padding: 8px 10px; border-radius: 10px; } .tag { padding: 2px 7px; } }
+    @media (min-width: 1300px) { .wrap { max-width: 1200px; } table { min-width: 960px; } th, td { padding: 12px 14px; } }
 
     /* ===== Modal legale ===== */
     .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px env(safe-area-inset-right) 16px env(safe-area-inset-left);z-index:50}
