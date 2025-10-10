@@ -6,6 +6,9 @@
 
   <title>Lift Configurator — pezzaliAPP.com</title>
 
+  <!-- FISSA la base per tutti i path relativi (importante se l'app vive in una sottocartella) -->
+  <base href="./">
+
   <!-- Colori e tema -->
   <meta name="theme-color" content="#0b1022">
   <meta name="background-color" content="#0b1022">
@@ -13,14 +16,17 @@
   <meta name="author" content="Alessandro Pezzali — pezzaliAPP.com">
 
   <!-- PWA / icone -->
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 
   <!-- iOS PWA extras -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- PRELOAD del dataset per ridurre race con SW/cache -->
+  <link rel="preload" as="fetch" href="models.json?v=20251010" crossorigin="anonymous">
 
   <style>
     :root{ --bg:#0b1022; --card:#111735; --ink:#eef2ff; --muted:#9fb0d9; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --line:#1d2a55; --focus:#2dd4bf; }
@@ -58,8 +64,6 @@
     .chips{display:flex;flex-wrap:wrap;gap:6px}
     .lang{display:flex;gap:8px;align-items:center}
     @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
-
-    /* Tipografia fluida */
     html { font-size: clamp(14px, 0.9vw + 12px, 16px); }
     body { font-size: 0.95rem; line-height: 1.5; }
     h1 { font-size: clamp(18px, 1.2vw + 16px, 26px); }
@@ -98,20 +102,33 @@
   <!-- Bootstrap dataset & pulizia cache/SW (PRIMA di app.js) -->
   <script>
     (function () {
-      // URL dei modelli con bust anti-cache
-      window.MODELS_URL = './models.json?v=20251010';
+      // URL dei modelli con bust anti-cache (allineato a sw v5)
+      window.MODELS_URL = 'models.json?v=20251010';
 
-      // Aggiorna eventuali SW vecchi e pulisci cache obsolete
+      // Aggiorna SW registrati
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations()
           .then(rs => rs.forEach(r => r.update && r.update()))
           .catch(()=>{});
       }
+      // Cancella cache SW obsolete
       if (window.caches) {
-        caches.keys().then(keys => keys.forEach(k => {
-          if (/^cascos-config-/.test(k) && k !== 'cascos-config-v5') caches.delete(k);
-        })).catch(()=>{});
+        caches.keys()
+          .then(keys => Promise.all(
+            keys.filter(k => /^cascos-config-/.test(k) && k !== 'cascos-config-v5')
+                .map(k => caches.delete(k))
+          ))
+          .catch(()=>{});
       }
+      // Banner errori JS visibile (utile se models.json fallisce)
+      window.addEventListener('error', (e) => {
+        const b = document.getElementById('errBanner');
+        if (b && !b.textContent) b.textContent = 'Errore di runtime: ' + (e?.message || 'sconosciuto');
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        const b = document.getElementById('errBanner');
+        if (b && !b.textContent) b.textContent = 'Errore dati/modelli: ' + (e?.reason?.message || 'fetch/json');
+      });
     })();
   </script>
 </head>
@@ -134,13 +151,16 @@
         <button class="btn" id="csvBtn" type="button" aria-label="Esporta CSV" title="Esporta CSV">🧾 <span id="t_csv">CSV</span></button>
         <button class="btn" id="pdfMultiBtn" type="button" aria-label="Apri più PDF" title="PDF multiplo">🖨️ <span id="t_pdfmulti">PDF multiplo</span></button>
         <button class="btn" id="saveBtn" type="button" aria-label="Esporta configurazione" title="Esporta configurazione">💾 <span id="t_save">Salva</span></button>
-        <a class="btn" href="./README.html" target="_blank" rel="noopener" aria-label="Leggimi">📖 <span id="t_readme">Leggimi</span></a>
-        <a class="btn" href="./LICENSE.html#it" target="_blank" rel="noopener" aria-label="Licenza completa">📜 Licenza</a>
+        <a class="btn" href="README.html" target="_blank" rel="noopener" aria-label="Leggimi">📖 <span id="t_readme">Leggimi</span></a>
+        <a class="btn" href="LICENSE.html#it" target="_blank" rel="noopener" aria-label="Licenza completa">📜 Licenza</a>
         <button class="btn" id="installBtn" type="button" hidden aria-label="Installa app">➕ <span id="t_install">Installa</span></button>
         <button class="btn" id="legalBtn" type="button" aria-label="Informazioni legali">ℹ️ Info legali</button>
       </nav>
     </div>
   </header>
+
+  <!-- Banner errori (si popola solo se qualcosa va storto) -->
+  <div id="errBanner" style="max-width:1100px;margin:8px auto 0;color:#fff;background:#b91c1c;border:1px solid #7f1d1d;border-radius:10px;padding:8px 12px;font:13px system-ui"></div>
 
   <main class="wrap grid" id="app">
     <!-- 1) Vincoli officina -->
@@ -279,12 +299,12 @@
       <div class="inner">
         <h2>4) Documenti utili</h2>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <a class="btn" href="./docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">🏗️ Schema fondazioni</a>
-          <a class="btn" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">📘 Manuale tecnico</a>
-          <a class="btn" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
-          <a class="btn" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
-          <a class="btn" id="armsGeneralBtn" href="./ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
-          <a class="btn" href="./LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza (completa)</a>
+          <a class="btn" href="docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">🏗️ Schema fondazioni</a>
+          <a class="btn" href="docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">📘 Manuale tecnico</a>
+          <a class="btn" href="docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
+          <a class="btn" href="docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
+          <a class="btn" id="armsGeneralBtn" href="ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
+          <a class="btn" href="LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza (completa)</a>
         </div>
       </div>
     </section>
@@ -330,7 +350,7 @@
         </div>
       </div>
       <div class="actions">
-        <a class="btn" id="legalFullLink" href="./LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza completa</a>
+        <a class="btn" id="legalFullLink" href="LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza completa</a>
         <button class="btn primary" id="legalOk" type="button">OK</button>
       </div>
     </div>
@@ -354,7 +374,7 @@
         document.querySelectorAll('.modal .legal').forEach(el => {
           el.hidden = !el.classList.contains('lang-' + lang);
         });
-        if (fullLink) fullLink.href = './LICENSE.html#' + lang;
+        if (fullLink) fullLink.href = 'LICENSE.html#' + lang;
       }
       function open(){ syncLegalLang(); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
       function close(){ modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
@@ -373,7 +393,7 @@
   </script>
 
   <!-- App logic -->
-  <script src="./app.js" defer></script>
+  <script src="app.js" defer></script>
 
   <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
 </body>
