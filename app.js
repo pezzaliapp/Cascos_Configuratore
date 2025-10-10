@@ -1,4 +1,4 @@
-// app.js — v6.11
+// app.js — v6.12
 // Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
 // + i18n + share/csv/pdf/save + PWA
 
@@ -13,15 +13,21 @@
     (x == null || x === '' ? '-' :
       Number(x).toLocaleString(curLang() === 'en' ? 'en-US' : 'it-IT')) + (unit ? ' ' + unit : '');
 
+  // stop propagation utility (iOS safe)
+  function stopRowPropagation(el) {
+    ['click','pointerdown','touchstart'].forEach(evt =>
+      el.addEventListener(evt, ev => ev.stopPropagation(), { passive: true })
+    );
+  }
+
   // ------------------ static docs ------------------
   const PDF = {
     withbase:   './docs/scheda_con_pedana.pdf',
     baseless:   './docs/scheda_senza_pedana_2022.pdf',
     manuale:    './docs/manuale_tecnico_presentazione.pdf',
     fondazioni: './docs/fondazioni_cascos_c4c.pdf',
-    // pulsante “misure generali bracci vs tipi veicolo”
     arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
-    // alternativa (link GitHub diretto):
+    // alternativa GitHub:
     // arms_general: 'https://github.com/pezzaliapp/Cascos_Configuratore/blob/main/ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf?raw=1'
   };
 
@@ -54,17 +60,17 @@
     'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
     'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
     'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',     // alias se nel dataset
-    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',  // alias che avevi citato
+    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',  // alias citato
     'C7S':              ARMS_PATH + 'misure_C7S.pdf',
 
     // --- utilità ---
     'MISURE TAMPONI':   ARMS_PATH + 'MISURE TAMPONI.pdf'
   };
 
-  // Pagine nel manuale per tavole bracci (solo fallback)
+  // Pagine manuale per tavole bracci (solo fallback)
   const ARMS_PAGES = { 'C3.2': 7, 'C3.2 Comfort': 13, 'C3.5': 19 };
 
-  // ------------------ schede commerciali per modello ------------------
+  // ------------------ Schede commerciali per modello ------------------
   const SHEET_FILES = {
     withbase: {
       'C3.2':          './docs/scheda_C3.2_con_pedana.pdf',
@@ -73,7 +79,7 @@
       'C3.5XL':        './docs/scheda_C3.5XL_con_pedana.pdf',
       'C4':            './docs/scheda_C4_con_pedana.pdf',
       'C4XL':          './docs/scheda_C4XL_con_pedana.pdf',
-      // C5 base: fallback al PDF consolidato
+      // C5 base → fallback su PDF.withbase
       'C5 WAGON':      './docs/scheda_C5WAGON_con_pedana.pdf',
       'C5 XLWAGON':    './docs/scheda_C5XL_WAGON_con_pedana.pdf',
       'C5.5':          './docs/scheda_C5.5_con_pedana.pdf',
@@ -93,7 +99,7 @@
     }
   };
 
-  // Pagine “schede generali” nel Manuale (fallback vista generale)
+  // Pagine “schede generali” nel Manuale (fallback)
   const MANUAL_PAGES = {
     'C3.2': 5, 'C3.5': 12, 'C4': 16, 'C4XL': 18, 'C5': 20, 'C5.5': 22, 'C5 WAGON': 25,
     'C3.2S': 32, 'C3.5S': 36, 'C4S': 40, 'C5.5S': 44
@@ -286,7 +292,7 @@
     lcv:{kg:3200, wb:3300, use:'auto', duty:10}
   };
 
-  // Compatibilità (id devono corrispondere a MODELS[].id)
+  // Compatibilità (gli id devono corrispondere a MODELS[].id)
   const VEHICLE_COMPAT = {
     city:  ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S'],
     sedan: ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S','C4XL'],
@@ -335,7 +341,6 @@
     const L = I18N[curLang()] || I18N.it;
     const H = +($('#inpH')?.value || 0);
     const W = +($('#inpW')?.value || 0);
-    the:
     const T = +($('#inpThickness')?.value || 0);
     const conc = $('#inpConcrete')?.value;
     const pw = $('#inpPower')?.value;
@@ -401,9 +406,9 @@
           <div class="hint">ref. ${m.ref || '-'}</div>
           ${baseChip}
           <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
-            <a class="btn action-sheet" style="padding:2px 8px" href="${schedaUrl}" target="_blank" rel="noopener">📄 ${L.sheet_btn}</a>
-            <a class="btn action-arms"  style="padding:2px 8px" href="${armsUrl}"   target="_blank" rel="noopener">📐 ${L.arms_btn}</a>
-            <a class="btn action-fond"  style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">🏗️ ${L.fond_btn}</a>
+            <a class="btn action-sheet" style="padding:2px 8px" href="${schedaUrl}" target="_blank" rel="noopener">${L.sheet_btn}</a>
+            <a class="btn action-arms"  style="padding:2px 8px" href="${armsUrl}"   target="_blank" rel="noopener">${L.arms_btn}</a>
+            <a class="btn action-fond"  style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.fond_btn}</a>
           </div>
         </td>
         <td>${fmt(m.portata, 'kg')}</td>
@@ -416,14 +421,12 @@
         <td>${issues.length ? issues.map(i => `<span class="tag ${i.cls}">${i.t}</span>`).join(' ') : `<span class="ok">${L.ok}</span>`}</td>
         <td><input type="checkbox" class="pick" data-id="${m.id}"></td>`;
 
-      // apertura scheda di stampa cliccando la riga
+      // click sulla riga → scheda di stampa
       tr.style.cursor = 'pointer';
       tr.addEventListener('click', () => openSheet(m, L));
 
-      // BLOCCO: evitare che il click sui bottoni interni scateni anche l'handler della riga
-      tr.querySelectorAll('.action-sheet,.action-arms,.action-fond,.pick').forEach(el => {
-        el.addEventListener('click', ev => ev.stopPropagation(), { passive: true });
-      });
+      // evitare che i bottoni interni/scelta propaghino il click alla riga
+      tr.querySelectorAll('.action-sheet,.action-arms,.action-fond,.pick').forEach(stopRowPropagation);
 
       rows.appendChild(tr);
     });
