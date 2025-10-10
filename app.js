@@ -36,7 +36,7 @@
     'C3.5XL':           ARMS_PATH + 'misure_C3.5XL.pdf',
     'C4':               ARMS_PATH + 'misure_C4.pdf',
     'C4XL':             ARMS_PATH + 'misure_C4XL.pdf',
-    'C5':               ARMS_PATH + 'misure_C5.pdf',           // se assente, resta 404 (fallback manuale non applicabile qui)
+    'C5':               ARMS_PATH + 'misure_C5.pdf',
     'C5.5':             ARMS_PATH + 'misure_C5.5.pdf',
     'C5 WAGON':         ARMS_PATH + 'misure_C5WAGON.pdf',
     'C5 XLWAGON':       ARMS_PATH + 'misure_C5XLWAGON.pdf',
@@ -53,8 +53,8 @@
     'C4SVS':            ARMS_PATH + 'misure_C4SVS.pdf',
     'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
     'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
-    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',    // alias se presente nel dataset
-    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf', // alias che hai caricato
+    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',     // alias se presente nel dataset
+    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',  // alias che hai caricato
     'C7S':              ARMS_PATH + 'misure_C7S.pdf',
 
     // --- utilità ---
@@ -80,10 +80,25 @@
       'C5 WAGON':'./docs/scheda_C5_WAGON_con_pedana.pdf'
     },
     baseless: {
-      'C3.2S':  './docs/scheda_C3.2S_senza_pedana.pdf',
-      'C3.5S':  './docs/scheda_C3.5S_senza_pedana.pdf',
-      'C4S':    './docs/scheda_C4S_senza_pedana.pdf',
-      'C5.5S':  './docs/scheda_C5.5S_senza_pedana.pdf'
+      // C3.2S – varianti
+      'C3.2S':           './docs/scheda_C3.2S_senza_pedana.pdf',
+      'C3.2S CONFORT':   './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
+      'C3.2S SPORT':     './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
+
+      // C3.5S – standard + XL
+      'C3.5S':           './docs/scheda_C3.5S_senza_pedana.pdf',
+      'C3.5SXL':         './docs/scheda_C3.5SXL_senza_pedana.pdf',
+
+      // C4S – standard + XL (il file si chiama C4.5SXL, lo mappiamo a C4SXL)
+      'C4S':             './docs/scheda_C4S_senza_pedana.pdf',
+      'C4SXL':           './docs/scheda_C4.5SXL_senza_pedana.pdf',
+
+      // C5.5S – standard + WAGON
+      'C5.5S':           './docs/scheda_C5.5S_senza_pedana.pdf',
+      'C5.5SWAGON':      './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
+
+      // C5S WAGON (senza pedana)
+      'C5SWAGON':        './docs/scheda_C5SWAGON_senza_pedana.pdf'
     }
   };
 
@@ -263,7 +278,7 @@
   const VEHICLE_TYPES = {
     any:{ it:'Qualsiasi', en:'Any', es:'Cualquiera', fr:'Toutes', pt:'Qualquer' },
     city:{ it:'City / Utilitaria', en:'City / Small', es:'Ciudad / utilitario', fr:'Citadine', pt:'Citadino' },
-    sedan:{ it:'Berlina / Crossover', en:'Sedan / Crossover', es:'Berlina / Crossover', fr:'Berline / Crossover', pt:'Sedan / Crossover' },
+    sedan:{ it:'Berlina / Crossover', en:'Sedan / Crossover', es:'Berlina / Crossover', fr:'Berline / Crossover' , pt:'Sedan / Crossover'},
     suv:{ it:'SUV / Pickup', en:'SUV / Pickup', es:'SUV / Pickup', fr:'SUV / Pickup', pt:'SUV / Pickup' },
     mpv:{ it:'MPV / Monovolume', en:'MPV / Minivan', es:'Monovolumen', fr:'Monospace', pt:'Minivan' },
     van:{ it:'Van / Furgoni', en:'Van / LCV', es:'Furgón', fr:'Fourgon', pt:'Furgão' },
@@ -286,9 +301,9 @@
     sedan: ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S','C4XL'],
     suv:   ['C3.5','C4','C4XL','C5','C5.5','C5.5S'],
     mpv:   ['C3.5','C4','C4XL'],
-    // ⬇️ aggiunte versioni senza basamento adatte ai furgoni
-    van:   ['C4S','C4XL','C5','C5.5','C5.5S','C5 WAGON'],
-    lcv:   ['C5','C5.5','C5 WAGON','C5.5S']
+    // include versioni senza basamento adatte ai furgoni
+    van:   ['C4S','C4SXL','C4XL','C5','C5.5','C5.5S','C5 WAGON','C5SWAGON','C5.5SWAGON'],
+    lcv:   ['C5','C5.5','C5 WAGON','C5.5S','C5SWAGON','C5.5SWAGON']
   };
 
   function populateVehicleSelect(lang) {
