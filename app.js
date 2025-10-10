@@ -93,6 +93,7 @@
     'C3.5SXL':       './docs/scheda_C3.5SXL_senza_pedana.pdf',
     'C4S':           './docs/scheda_C4S_senza_pedana.pdf',
     'C4SXL':         './docs/scheda_C4.5SXL_senza_pedana.pdf',
+    'C5S':           './docs/scheda_C5S_senza_pedana.pdf',
     'C5.5S':         './docs/scheda_C5.5S_senza_pedana.pdf',
     'C5.5SWAGON':    './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
     'C5SWAGON':      './docs/scheda_C5SWAGON_senza_pedana.pdf'
