@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
 
-  <!-- iOS PWA extras (devono stare nel <head>) -->
+  <!-- iOS PWA extras -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
@@ -94,6 +94,26 @@
     .modal .close{background:#0e193f;border:1px solid var(--line);padding:8px 10px;border-radius:10px;color:var(--ink);cursor:pointer}
     .legal[hidden]{display:none !important}
   </style>
+
+  <!-- Bootstrap dataset & pulizia cache/SW (PRIMA di app.js) -->
+  <script>
+    (function () {
+      // URL dei modelli con bust anti-cache
+      window.MODELS_URL = './models.json?v=20251010';
+
+      // Aggiorna eventuali SW vecchi e pulisci cache obsolete
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations()
+          .then(rs => rs.forEach(r => r.update && r.update()))
+          .catch(()=>{});
+      }
+      if (window.caches) {
+        caches.keys().then(keys => keys.forEach(k => {
+          if (/^cascos-config-/.test(k) && k !== 'cascos-config-v5') caches.delete(k);
+        })).catch(()=>{});
+      }
+    })();
+  </script>
 </head>
 <body>
   <header>
