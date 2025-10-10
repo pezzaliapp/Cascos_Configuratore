@@ -72,32 +72,32 @@
 
   // ------------------ Schede commerciali per modello ------------------
   const SHEET_FILES = {
-    withbase: {
-      'C3.2':          './docs/scheda_C3.2_con_pedana.pdf',
-      'C3.2 Comfort':  './docs/scheda_C3.2CONFORT_con_pedana.pdf', // file è “CONFORT”
-      'C3.5':          './docs/scheda_C3.5_con_pedana.pdf',
-      'C3.5XL':        './docs/scheda_C3.5XL_con_pedana.pdf',
-      'C4':            './docs/scheda_C4_con_pedana.pdf',
-      'C4XL':          './docs/scheda_C4XL_con_pedana.pdf',
-      // C5 base → fallback su PDF.withbase
-      'C5 WAGON':      './docs/scheda_C5WAGON_con_pedana.pdf',
-      'C5 XLWAGON':    './docs/scheda_C5XL_WAGON_con_pedana.pdf',
-      'C5.5':          './docs/scheda_C5.5_con_pedana.pdf',
-      'C5.5 WAGON':    './docs/scheda_C5.5WAGON_con_pedana.pdf'
-    },
-    baseless: {
-      'C3.2S':           './docs/scheda_C3.2S_senza_pedana.pdf',
-      'C3.2S CONFORT':   './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
-      'C3.2S SPORT':     './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
-      'C3.5S':           './docs/scheda_C3.5S_senza_pedana.pdf',
-      'C3.5SXL':         './docs/scheda_C3.5SXL_senza_pedana.pdf',
-      'C4S':             './docs/scheda_C4S_senza_pedana.pdf',
-      'C4SXL':           './docs/scheda_C4.5SXL_senza_pedana.pdf',
-      'C5.5S':           './docs/scheda_C5.5S_senza_pedana.pdf',
-      'C5.5SWAGON':      './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
-      'C5SWAGON':        './docs/scheda_C5SWAGON_senza_pedana.pdf'
-    }
-  };
+  withbase: {
+    'C3.2':         './docs/scheda_C3.2_con_pedana.pdf',
+    'C3.2 Comfort': './docs/scheda_C3.2CONFORT_con_pedana.pdf',
+    'C3.5':         './docs/scheda_C3.5_con_pedana.pdf',
+    'C3.5XL':       './docs/scheda_C3.5XL_con_pedana.pdf',
+    'C4':           './docs/scheda_C4_con_pedana.pdf',
+    'C4XL':         './docs/scheda_C4XL_con_pedana.pdf',
+    'C5':           './docs/scheda_C5_con_pedana.pdf',        // ✅ AGGIUNTO
+    'C5 WAGON':     './docs/scheda_C5WAGON_con_pedana.pdf',
+    'C5 XLWAGON':   './docs/scheda_C5XL_WAGON_con_pedana.pdf',
+    'C5.5':         './docs/scheda_C5.5_con_pedana.pdf',
+    'C5.5 WAGON':   './docs/scheda_C5.5WAGON_con_pedana.pdf'
+  },
+  baseless: {
+    'C3.2S':         './docs/scheda_C3.2S_senza_pedana.pdf',
+    'C3.2S CONFORT': './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
+    'C3.2S SPORT':   './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
+    'C3.5S':         './docs/scheda_C3.5S_senza_pedana.pdf',
+    'C3.5SXL':       './docs/scheda_C3.5SXL_senza_pedana.pdf',
+    'C4S':           './docs/scheda_C4S_senza_pedana.pdf',
+    'C4SXL':         './docs/scheda_C4.5SXL_senza_pedana.pdf',
+    'C5.5S':         './docs/scheda_C5.5S_senza_pedana.pdf',
+    'C5.5SWAGON':    './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
+    'C5SWAGON':      './docs/scheda_C5SWAGON_senza_pedana.pdf'
+  }
+};
 
   // Pagine “schede generali” nel Manuale (fallback)
   const MANUAL_PAGES = {
