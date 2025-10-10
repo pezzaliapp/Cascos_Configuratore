@@ -3,13 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-
   <title>Lift Configurator — pezzaliAPP.com</title>
-
-  <!-- FISSA la base per tutti i path relativi (importante se l'app vive in una sottocartella) -->
   <base href="./">
 
-  <!-- Colori e tema -->
   <meta name="theme-color" content="#0b1022">
   <meta name="background-color" content="#0b1022">
   <meta name="description" content="Lift Configurator — Strumento professionale per la preventivazione e selezione sollevatori a 2 colonne CASCOS. Sviluppato da pezzaliAPP.com">
@@ -19,13 +15,10 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
-
-  <!-- iOS PWA extras -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-  <!-- PRELOAD del dataset per ridurre race con SW/cache -->
   <link rel="preload" as="fetch" href="models.json?v=20251010" crossorigin="anonymous">
 
   <style>
@@ -63,6 +56,10 @@
     .callout{border-left:4px solid var(--focus);background:#0f183b;padding:12px 14px;border-radius:12px}
     .chips{display:flex;flex-wrap:wrap;gap:6px}
     .lang{display:flex;gap:8px;align-items:center}
+
+    /* banner scompare quando vuoto */
+    #errBanner:empty { display:none; }
+
     @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
     html { font-size: clamp(14px, 0.9vw + 12px, 16px); }
     body { font-size: 0.95rem; line-height: 1.5; }
@@ -102,32 +99,28 @@
   <!-- Bootstrap dataset & pulizia cache/SW (PRIMA di app.js) -->
   <script>
     (function () {
-      // URL dei modelli con bust anti-cache (allineato a sw v5)
       window.MODELS_URL = 'models.json?v=20251010';
 
-      // Aggiorna SW registrati
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations()
-          .then(rs => rs.forEach(r => r.update && r.update()))
-          .catch(()=>{});
+        navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.update && r.update())).catch(()=>{});
       }
-      // Cancella cache SW obsolete
       if (window.caches) {
         caches.keys()
-          .then(keys => Promise.all(
-            keys.filter(k => /^cascos-config-/.test(k) && k !== 'cascos-config-v5')
-                .map(k => caches.delete(k))
-          ))
+          .then(keys => Promise.all(keys.filter(k => /^cascos-config-/.test(k) && k !== 'cascos-config-v5').map(k => caches.delete(k))))
           .catch(()=>{});
       }
-      // Banner errori JS visibile (utile se models.json fallisce)
+
+      // Banner errori JS — filtriamo rumore/risorse
+      function showErr(msg){
+        const b=document.getElementById('errBanner'); if(b && !b.textContent) b.textContent = msg;
+      }
       window.addEventListener('error', (e) => {
-        const b = document.getElementById('errBanner');
-        if (b && !b.textContent) b.textContent = 'Errore di runtime: ' + (e?.message || 'sconosciuto');
+        if (e.target && (e.target.src || e.target.href)) return; // errori di risorsa (icone/css) ignorati
+        if (/ResizeObserver/.test(e?.message||'')) return;
+        showErr('Errore di runtime: ' + (e?.message || 'sconosciuto'));
       });
       window.addEventListener('unhandledrejection', (e) => {
-        const b = document.getElementById('errBanner');
-        if (b && !b.textContent) b.textContent = 'Errore dati/modelli: ' + (e?.reason?.message || 'fetch/json');
+        showErr('Errore dati/modelli: ' + (e?.reason?.message || 'fetch/json'));
       });
     })();
   </script>
@@ -147,19 +140,19 @@
             <option value="pt">Português</option>
           </select>
         </div>
-        <button class="btn" id="shareBtn" type="button" aria-label="Condividi configurazione" title="Condividi scheda">🔗 <span id="t_share">Condividi</span></button>
-        <button class="btn" id="csvBtn" type="button" aria-label="Esporta CSV" title="Esporta CSV">🧾 <span id="t_csv">CSV</span></button>
-        <button class="btn" id="pdfMultiBtn" type="button" aria-label="Apri più PDF" title="PDF multiplo">🖨️ <span id="t_pdfmulti">PDF multiplo</span></button>
-        <button class="btn" id="saveBtn" type="button" aria-label="Esporta configurazione" title="Esporta configurazione">💾 <span id="t_save">Salva</span></button>
-        <a class="btn" href="README.html" target="_blank" rel="noopener" aria-label="Leggimi">📖 <span id="t_readme">Leggimi</span></a>
-        <a class="btn" href="LICENSE.html#it" target="_blank" rel="noopener" aria-label="Licenza completa">📜 Licenza</a>
-        <button class="btn" id="installBtn" type="button" hidden aria-label="Installa app">➕ <span id="t_install">Installa</span></button>
-        <button class="btn" id="legalBtn" type="button" aria-label="Informazioni legali">ℹ️ Info legali</button>
+        <button class="btn" id="shareBtn" type="button">🔗 <span id="t_share">Condividi</span></button>
+        <button class="btn" id="csvBtn" type="button">🧾 <span id="t_csv">CSV</span></button>
+        <button class="btn" id="pdfMultiBtn" type="button">🖨️ <span id="t_pdfmulti">PDF multiplo</span></button>
+        <button class="btn" id="saveBtn" type="button">💾 <span id="t_save">Salva</span></button>
+        <a class="btn" href="README.html" target="_blank" rel="noopener">📖 <span id="t_readme">Leggimi</span></a>
+        <a class="btn" href="LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza</a>
+        <button class="btn" id="installBtn" type="button" hidden>➕ <span id="t_install">Installa</span></button>
+        <button class="btn" id="legalBtn" type="button">ℹ️ Info legali</button>
       </nav>
     </div>
   </header>
 
-  <!-- Banner errori (si popola solo se qualcosa va storto) -->
+  <!-- Banner errori -->
   <div id="errBanner" style="max-width:1100px;margin:8px auto 0;color:#fff;background:#b91c1c;border:1px solid #7f1d1d;border-radius:10px;padding:8px 12px;font:13px system-ui"></div>
 
   <main class="wrap grid" id="app">
@@ -320,28 +313,24 @@
         <button class="close" id="legalClose" aria-label="Chiudi">✕</button>
       </header>
       <div class="body">
-        <!-- IT -->
         <div class="legal lang-it">
           <p><strong>Uso consentito:</strong> preventivazione commerciale per la vendita, dimostrazioni e formazione interna.</p>
           <p><strong>Marchi:</strong> “CASCOS” e le denominazioni dei modelli sono dei rispettivi proprietari; uso descrittivo, nessuna affiliazione.</p>
           <p><strong>Divieti:</strong> vietata copia/redistribuzione dell’app senza autorizzazione scritta. Possibile marcatura anti-diffusione.</p>
           <p><strong>Responsabilità:</strong> dati indicativi; valgono i documenti ufficiali dei produttori.</p>
         </div>
-        <!-- EN -->
         <div class="legal lang-en" hidden>
           <p><strong>Permitted use:</strong> commercial quoting/sales proposals, demos and internal training.</p>
           <p><strong>Trademarks:</strong> “CASCOS” and model names belong to their owners; descriptive use only, no affiliation.</p>
           <p><strong>Restrictions:</strong> copying/redistribution of the app is prohibited without written consent. Anti–leak marking may apply.</p>
           <p><strong>Disclaimer:</strong> data is indicative; official manufacturer documents prevail.</p>
         </div>
-        <!-- ES -->
         <div class="legal lang-es" hidden>
           <p><strong>Uso permitido:</strong> presupuestación comercial para la venta, demostraciones y formación interna.</p>
           <p><strong>Marcas:</strong> “CASCOS” y los nombres de modelos pertenecen a sus titulares; uso descriptivo, sin afiliación.</p>
           <p><strong>Restricciones:</strong> prohibida la copia/distribución sin autorización escrita. Posible marcado anti–difusión.</p>
           <p><strong>Descargo:</strong> datos indicativos; prevalecen los documentos oficiales del fabricante.</p>
         </div>
-        <!-- FR -->
         <div class="legal lang-fr" hidden>
           <p><strong>Usage autorisé :</strong> chiffrage commercial pour la vente, démonstrations et formation interne.</p>
           <p><strong>Marques :</strong> “CASCOS” et les noms des modèles appartiennent à leurs propriétaires ; usage descriptif, aucune affiliation.</p>
@@ -356,7 +345,6 @@
     </div>
   </div>
 
-  <!-- Script utility: lingua modale + fix tap PDF su iPhone -->
   <script>
     (function(){
       const modal = document.getElementById('legalModal');
@@ -365,17 +353,8 @@
       const okBtn = document.getElementById('legalOk');
       const langSel = document.getElementById('langSel');
       const fullLink = document.getElementById('legalFullLink');
-      function currentLang(){
-        const l = document.documentElement.lang || (langSel && langSel.value) || 'it';
-        return ['it','en','es','fr'].includes(l) ? l : 'it';
-      }
-      function syncLegalLang(){
-        const lang = currentLang();
-        document.querySelectorAll('.modal .legal').forEach(el => {
-          el.hidden = !el.classList.contains('lang-' + lang);
-        });
-        if (fullLink) fullLink.href = 'LICENSE.html#' + lang;
-      }
+      function currentLang(){ const l = document.documentElement.lang || (langSel && langSel.value) || 'it'; return ['it','en','es','fr'].includes(l) ? l : 'it'; }
+      function syncLegalLang(){ const lang = currentLang(); document.querySelectorAll('.modal .legal').forEach(el => { el.hidden = !el.classList.contains('lang-' + lang); }); if (fullLink) fullLink.href = 'LICENSE.html#' + lang; }
       function open(){ syncLegalLang(); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
       function close(){ modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
       openBtn && openBtn.addEventListener('click', open);
@@ -384,17 +363,12 @@
       modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
       langSel && langSel.addEventListener('change', syncLegalLang);
 
-      // Evita che i link nella tabella attivino il click sulla riga (stampa)
       const rows = document.getElementById('rows');
-      rows && rows.addEventListener('click', (e) => {
-        if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); }
-      });
+      rows && rows.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); } });
     })();
   </script>
 
-  <!-- App logic -->
   <script src="app.js" defer></script>
-
   <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
 </body>
 </html>
