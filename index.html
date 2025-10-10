@@ -113,6 +113,17 @@
       table { min-width: 960px; }
       th, td { padding: 12px 14px; }
     }
+
+    /* ===== Modal legale ===== */
+    .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px env(safe-area-inset-right) 16px env(safe-area-inset-left);z-index:50}
+    .modal-backdrop[aria-hidden="false"]{display:flex}
+    .modal{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:760px;width:100%;box-shadow:0 10px 40px #0007}
+    .modal header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:transparent}
+    .modal header h3{margin:0;font-size:18px}
+    .modal .body{padding:14px 16px}
+    .modal .actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 16px;border-top:1px solid var(--line)}
+    .modal .close{background:#0e193f;border:1px solid var(--line);padding:8px 10px;border-radius:10px;color:var(--ink);cursor:pointer}
+    .legal[hidden]{display:none !important}
   </style>
 </head>
 <body>
@@ -135,7 +146,9 @@
         <button class="btn" id="pdfMultiBtn" type="button" aria-label="Apri più PDF" title="PDF multiplo">🖨️ <span id="t_pdfmulti">PDF multiplo</span></button>
         <button class="btn" id="saveBtn" type="button" aria-label="Esporta configurazione" title="Esporta configurazione">💾 <span id="t_save">Salva</span></button>
         <a class="btn" href="./README.html" target="_blank" rel="noopener" aria-label="Leggimi">📖 <span id="t_readme">Leggimi</span></a>
+        <a class="btn" href="./LICENSE.html#it" target="_blank" rel="noopener" aria-label="Licenza completa">📜 Licenza</a>
         <button class="btn" id="installBtn" type="button" hidden aria-label="Installa app">➕ <span id="t_install">Installa</span></button>
+        <button class="btn" id="legalBtn" type="button" aria-label="Informazioni legali">ℹ️ Info legali</button>
       </nav>
     </div>
   </header>
@@ -282,12 +295,93 @@
           <a class="btn" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
           <a class="btn" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
           <a class="btn" id="armsGeneralBtn" href="./ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
+          <a class="btn" href="./LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza (completa)</a>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="wrap"><div>© Cascos_Configuratore — PWA open-source.</div></footer>
+
+  <!-- Modal “Informazioni legali” -->
+  <div class="modal-backdrop" id="legalModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+      <header>
+        <h3 id="legalTitle">Informazioni legali</h3>
+        <button class="close" id="legalClose" aria-label="Chiudi">✕</button>
+      </header>
+      <div class="body">
+        <!-- IT -->
+        <div class="legal lang-it">
+          <p><strong>Uso consentito:</strong> preventivazione commerciale per la vendita, dimostrazioni e formazione interna.</p>
+          <p><strong>Marchi:</strong> “CASCOS” e le denominazioni dei modelli sono dei rispettivi proprietari; uso descrittivo, nessuna affiliazione.</p>
+          <p><strong>Divieti:</strong> vietata copia/redistribuzione dell’app senza autorizzazione scritta. Possibile marcatura anti-diffusione.</p>
+          <p><strong>Responsabilità:</strong> dati indicativi; valgono i documenti ufficiali dei produttori.</p>
+        </div>
+        <!-- EN -->
+        <div class="legal lang-en" hidden>
+          <p><strong>Permitted use:</strong> commercial quoting/sales proposals, demos and internal training.</p>
+          <p><strong>Trademarks:</strong> “CASCOS” and model names belong to their owners; descriptive use only, no affiliation.</p>
+          <p><strong>Restrictions:</strong> copying/redistribution of the app is prohibited without written consent. Anti–leak marking may apply.</p>
+          <p><strong>Disclaimer:</strong> data is indicative; official manufacturer documents prevail.</p>
+        </div>
+        <!-- ES -->
+        <div class="legal lang-es" hidden>
+          <p><strong>Uso permitido:</strong> presupuestación comercial para la venta, demostraciones y formación interna.</p>
+          <p><strong>Marcas:</strong> “CASCOS” y los nombres de modelos pertenecen a sus titulares; uso descriptivo, sin afiliación.</p>
+          <p><strong>Restricciones:</strong> prohibida la copia/distribución sin autorización escrita. Posible marcado anti–difusión.</p>
+          <p><strong>Descargo:</strong> datos indicativos; prevalecen los documentos oficiales del fabricante.</p>
+        </div>
+        <!-- FR -->
+        <div class="legal lang-fr" hidden>
+          <p><strong>Usage autorisé :</strong> chiffrage commercial pour la vente, démonstrations et formation interne.</p>
+          <p><strong>Marques :</strong> “CASCOS” et les noms des modèles appartiennent à leurs propriétaires ; usage descriptif, aucune affiliation.</p>
+          <p><strong>Restrictions :</strong> copie/distribution interdites sans accord écrit. Marquage anti–diffusion possible.</p>
+          <p><strong>Responsabilité :</strong> données indicatives ; les documents officiels du constructeur prévalent.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn" id="legalFullLink" href="./LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza completa</a>
+        <button class="btn primary" id="legalOk" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script utility: lingua modale + fix tap PDF su iPhone -->
+  <script>
+    (function(){
+      const modal = document.getElementById('legalModal');
+      const openBtn = document.getElementById('legalBtn');
+      const closeBtn = document.getElementById('legalClose');
+      const okBtn = document.getElementById('legalOk');
+      const langSel = document.getElementById('langSel');
+      const fullLink = document.getElementById('legalFullLink');
+      function currentLang(){
+        const l = document.documentElement.lang || (langSel && langSel.value) || 'it';
+        return ['it','en','es','fr'].includes(l) ? l : 'it';
+      }
+      function syncLegalLang(){
+        const lang = currentLang();
+        document.querySelectorAll('.modal .legal').forEach(el => {
+          el.hidden = !el.classList.contains('lang-' + lang);
+        });
+        if (fullLink) fullLink.href = './LICENSE.html#' + lang;
+      }
+      function open(){ syncLegalLang(); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+      function close(){ modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+      openBtn && openBtn.addEventListener('click', open);
+      closeBtn && closeBtn.addEventListener('click', close);
+      okBtn && okBtn.addEventListener('click', close);
+      modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
+      langSel && langSel.addEventListener('change', syncLegalLang);
+
+      // Fix: clic sui link PDF dentro #rows non deve attivare il click sulla riga (stampa)
+      const rows = document.getElementById('rows');
+      rows && rows.addEventListener('click', (e) => {
+        if (e.target.closest('a')) { e.stopPropagation(); }
+      });
+    })();
+  </script>
 
   <script src="./app.js" defer></script>
   <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
