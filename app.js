@@ -1,6 +1,6 @@
-// app.js — v6.12
+// app.js — v6.13
 // Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
-// + i18n + share/csv/pdf/save + PWA
+// + i18n + share/csv/pdf/save + PWA + URL state restore
 
 (function () {
   'use strict';
@@ -27,8 +27,6 @@
     manuale:    './docs/manuale_tecnico_presentazione.pdf',
     fondazioni: './docs/fondazioni_cascos_c4c.pdf',
     arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
-    // alternativa GitHub:
-    // arms_general: 'https://github.com/pezzaliapp/Cascos_Configuratore/blob/main/ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf?raw=1'
   };
 
   // ------------------ ARMS (misure bracci) ------------------
@@ -73,33 +71,33 @@
 
   // ------------------ Schede commerciali per modello ------------------
   const SHEET_FILES = {
-  withbase: {
-    'C3.2':         './docs/scheda_C3.2_con_pedana.pdf',
-    'C3.2 Comfort': './docs/scheda_C3.2CONFORT_con_pedana.pdf',
-    'C3.5':         './docs/scheda_C3.5_con_pedana.pdf',
-    'C3.5XL':       './docs/scheda_C3.5XL_con_pedana.pdf',
-    'C4':           './docs/scheda_C4_con_pedana.pdf',
-    'C4XL':         './docs/scheda_C4XL_con_pedana.pdf',
-    'C5':           './docs/scheda_C5_con_pedana.pdf',        // ✅ AGGIUNTO
-    'C5 WAGON':     './docs/scheda_C5WAGON_con_pedana.pdf',
-    'C5 XLWAGON':   './docs/scheda_C5XL_WAGON_con_pedana.pdf',
-    'C5.5':         './docs/scheda_C5.5_con_pedana.pdf',
-    'C5.5 WAGON':   './docs/scheda_C5.5WAGON_con_pedana.pdf'
-  },
-  baseless: {
-    'C3.2S':         './docs/scheda_C3.2S_senza_pedana.pdf',
-    'C3.2S CONFORT': './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
-    'C3.2S SPORT':   './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
-    'C3.5S':         './docs/scheda_C3.5S_senza_pedana.pdf',
-    'C3.5SXL':       './docs/scheda_C3.5SXL_senza_pedana.pdf',
-    'C4S':           './docs/scheda_C4S_senza_pedana.pdf',
-    'C4SXL':         './docs/scheda_C4.5SXL_senza_pedana.pdf',
-    'C5S':           './docs/scheda_C5S_senza_pedana.pdf',
-    'C5.5S':         './docs/scheda_C5.5S_senza_pedana.pdf',
-    'C5.5SWAGON':    './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
-    'C5SWAGON':      './docs/scheda_C5SWAGON_senza_pedana.pdf'
-  }
-};
+    withbase: {
+      'C3.2':         './docs/scheda_C3.2_con_pedana.pdf',
+      'C3.2 Comfort': './docs/scheda_C3.2CONFORT_con_pedana.pdf',
+      'C3.5':         './docs/scheda_C3.5_con_pedana.pdf',
+      'C3.5XL':       './docs/scheda_C3.5XL_con_pedana.pdf',
+      'C4':           './docs/scheda_C4_con_pedana.pdf',
+      'C4XL':         './docs/scheda_C4XL_con_pedana.pdf',
+      'C5':           './docs/scheda_C5_con_pedana.pdf',
+      'C5 WAGON':     './docs/scheda_C5WAGON_con_pedana.pdf',
+      'C5 XLWAGON':   './docs/scheda_C5XL_WAGON_con_pedana.pdf',
+      'C5.5':         './docs/scheda_C5.5_con_pedana.pdf',
+      'C5.5 WAGON':   './docs/scheda_C5.5WAGON_con_pedana.pdf'
+    },
+    baseless: {
+      'C3.2S':         './docs/scheda_C3.2S_senza_pedana.pdf',
+      'C3.2S CONFORT': './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
+      'C3.2S SPORT':   './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
+      'C3.5S':         './docs/scheda_C3.5S_senza_pedana.pdf',
+      'C3.5SXL':       './docs/scheda_C3.5SXL_senza_pedana.pdf',
+      'C4S':           './docs/scheda_C4S_senza_pedana.pdf',
+      'C4SXL':         './docs/scheda_C4SXL_senza_pedana.pdf',   // ✅ fix (prima C4.5SXL)
+      'C5S':           './docs/scheda_C5S_senza_pedana.pdf',
+      'C5.5S':         './docs/scheda_C5.5S_senza_pedana.pdf',
+      'C5.5SWAGON':    './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
+      'C5SWAGON':      './docs/scheda_C5SWAGON_senza_pedana.pdf'
+    }
+  };
 
   // Pagine “schede generali” nel Manuale (fallback)
   const MANUAL_PAGES = {
@@ -267,50 +265,95 @@
   $('#langSel')?.addEventListener('change', (e) => applyLang(e.target.value));
 
   // ------------------ dataset ------------------
-let MODELS = [];
+  let MODELS = [];
 
-// Usa eventuale URL impostato da index.html e aggiungi un anti-cache locale
-function withNoStore(u) {
-  try {
-    const url = new URL(u, location.href);
-    if (!url.searchParams.has('v') && !url.searchParams.has('t')) {
-      url.searchParams.set('t', Date.now());
-    }
-    return url.toString();
-  } catch { return u; }
-}
-const DATA_URL = withNoStore(window.MODELS_URL || './models.json');
+  // URL anti-cache locale (compatibile con SW ignoreSearch)
+  function withNoStore(u) {
+    try {
+      const url = new URL(u, location.href);
+      if (!url.searchParams.has('v') && !url.searchParams.has('t')) {
+        url.searchParams.set('t', Date.now());
+      }
+      return url.toString();
+    } catch { return u; }
+  }
+  const DATA_URL = withNoStore(window.MODELS_URL || './models.json');
 
-fetch(DATA_URL, { cache: 'no-store' })
-  .then(r => {
-    if (!r.ok) throw new Error(`HTTP ${r.status} su ${DATA_URL}`);
-    const ct = r.headers.get('content-type') || '';
-    if (!/application\/json|text\/json/i.test(ct)) {
-      console.warn('Attenzione: content-type non JSON per models.json:', ct);
-    }
-    return r.json();
-  })
-  .then(d => {
-    if (!Array.isArray(d)) throw new Error('models.json non è un array');
-    MODELS = d;
-    initVehicleFilter();
-    applyLang(document.documentElement.lang || 'it');
-    calculate(); // primo render
-  })
-  .catch(err => {
-    console.error('Errore nel caricamento di models.json:', err);
-    MODELS = [];
-    initVehicleFilter();
-    applyLang(document.documentElement.lang || 'it');
-
-    const warnings = document.getElementById('warnings');
-    if (warnings) {
-      const s = document.createElement('span');
-      s.className = 'tag bad';
-      s.textContent = 'Impossibile caricare i modelli (rete/cache/MIME).';
-      warnings.appendChild(s);
+  // ------------------ URL state (restore da querystring) ------------------
+  const qp = new URLSearchParams(location.search);
+  const preselect = {
+    lang: qp.get('lang') || null,
+    ids:  (qp.get('ids') || '').split(',').map(s => s.trim()).filter(Boolean)
+  };
+  // alloca restore per inputs; li settiamo appena esistono in DOM
+  const restoreInputs = {
+    H: 'inpH', W: 'inpW', T: 'inpThickness',
+    C: 'inpConcrete', P: 'inpPower', B: 'inpBase',
+    GVW: 'inpGVW', WB: 'inpWB', V: 'vehicleSel'
+  };
+  Object.entries(restoreInputs).forEach(([q, id]) => {
+    const v = qp.get(q);
+    if (v != null && v !== '') {
+      const el = document.getElementById(id);
+      if (el) el.value = v;
+      // se il lang arriva da URL, applichiamolo subito (prima del fetch)
+      if (q === 'V' && id === 'vehicleSel' && el) {
+        // noop: popolazione vera dopo initVehicleFilter()
+      }
     }
   });
+  if (preselect.lang) {
+    const sel = $('#langSel'); if (sel) sel.value = preselect.lang;
+    applyLang(preselect.lang);
+  }
+
+  // Caricamento modelli
+  fetch(DATA_URL, { cache: 'no-store' })
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status} su ${DATA_URL}`);
+      const ct = r.headers.get('content-type') || '';
+      if (!/application\/json|text\/json/i.test(ct)) {
+        console.warn('Attenzione: content-type non JSON per models.json:', ct);
+      }
+      return r.json();
+    })
+    .then(d => {
+      if (!Array.isArray(d)) throw new Error('models.json non è un array');
+      MODELS = d;
+      initVehicleFilter();
+      // se c’era lang in URL ma la select non esisteva ancora, applica ora
+      if (preselect.lang) {
+        const sel = $('#langSel'); if (sel) sel.value = preselect.lang;
+        applyLang(preselect.lang);
+      } else {
+        applyLang(document.documentElement.lang || 'it');
+      }
+      calculate(); // primo render
+
+      // pre-seleziona eventuali ID passati in URL
+      if (preselect.ids.length) {
+        // ritarda di un tick per essere sicuri che i checkbox siano in DOM
+        setTimeout(() => {
+          const setIds = new Set(preselect.ids);
+          $$('.pick').forEach(chk => { if (setIds.has(chk.dataset.id)) chk.checked = true; });
+        }, 0);
+      }
+    })
+    .catch(err => {
+      console.error('Errore nel caricamento di models.json:', err);
+      MODELS = [];
+      initVehicleFilter();
+      applyLang(document.documentElement.lang || 'it');
+
+      const warnings = document.getElementById('warnings');
+      if (warnings) {
+        const s = document.createElement('span');
+        s.className = 'tag bad';
+        s.textContent = 'Impossibile caricare i modelli (rete/cache/MIME).';
+        warnings.appendChild(s);
+      }
+    });
+
   // ------------------ vehicle types / defaults / compat ------------------
   const VEHICLE_TYPES = {
     any:{ it:'Qualsiasi', en:'Any', es:'Cualquiera', fr:'Toutes', pt:'Qualquer' },
@@ -345,7 +388,7 @@ fetch(DATA_URL, { cache: 'no-store' })
   function populateVehicleSelect(lang) {
     const sel = $('#vehicleSel');
     if (!sel) return;
-    const cur = sel.value || 'any';
+    const cur = sel.value || qp.get('V') || 'any';
     sel.innerHTML = '';
     Object.entries(VEHICLE_TYPES).forEach(([k,labels]) => {
       const opt = document.createElement('option');
@@ -359,7 +402,6 @@ fetch(DATA_URL, { cache: 'no-store' })
     const sel = $('#vehicleSel');
     if (!sel) return;
     populateVehicleSelect(curLang());
-    sel.value = 'any';
     sel.addEventListener('change', () => {
       const d = VEHICLE_DEFAULTS[sel.value];
       if (d) {
@@ -370,6 +412,8 @@ fetch(DATA_URL, { cache: 'no-store' })
       }
       safeRender();
     });
+    // se in query è già stato passato V, lasciamo quel valore; altrimenti 'any'
+    if (!qp.get('V')) sel.value = 'any';
     const lbl = $('#t_secVeh'); if (lbl) lbl.textContent = (I18N[curLang()]||I18N.it).secVeh;
   }
 
@@ -483,6 +527,7 @@ fetch(DATA_URL, { cache: 'no-store' })
     set('C', $('#inpConcrete')?.value); set('P', $('#inpPower')?.value); set('B', $('#inpBase')?.value);
     set('GVW', $('#inpGVW')?.value); set('WB', $('#inpWB')?.value);
     if ($('#vehicleSel')) set('V', $('#vehicleSel').value);
+    set('lang', curLang());
     if (extras) Object.keys(extras).forEach(k => set(k, extras[k]));
     return p.toString();
   }
@@ -593,59 +638,59 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
     calculate();
   });
 
- // ------------------ PWA (install + fallback iOS) ------------------
-(function setupPWA() {
-  const installBtn = document.getElementById('installBtn');
-  let deferredPrompt = null;
+  // ------------------ PWA (install + fallback iOS) ------------------
+  (function setupPWA() {
+    const installBtn = document.getElementById('installBtn');
+    let deferredPrompt = null;
 
-  const showBtn = () => { if (installBtn) installBtn.hidden = false; };
-  const hideBtn = () => { if (installBtn) installBtn.hidden = true; };
+    const showBtn = () => { if (installBtn) installBtn.hidden = false; };
+    const hideBtn = () => { if (installBtn) installBtn.hidden = true; };
 
-  // 1) Nascondi se già installata
-  const isStandalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
-  if (isStandalone) hideBtn();
+    // 1) Nascondi se già installata
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+    if (isStandalone) hideBtn();
 
-  window.addEventListener('appinstalled', () => hideBtn());
+    window.addEventListener('appinstalled', () => hideBtn());
 
-  // 2) Flusso standard (Chrome/Edge/Android)
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();                 // cattura l’evento
-    deferredPrompt = e;
-    showBtn();
-    if (installBtn) {
-      installBtn.onclick = async () => {
-        try {
-          await deferredPrompt.prompt();                // mostra il prompt
-          const choice = await deferredPrompt.userChoice;
-          // se l’utente conferma, possiamo nascondere il bottone
-          if (choice && choice.outcome === 'accepted') hideBtn();
-        } catch (_) { /* no-op */ }
-        deferredPrompt = null;
-      };
-    }
-  });
-
-  // 3) Fallback se l’evento non arriva (iOS Safari & co.)
-  setTimeout(() => {
-    if (!deferredPrompt && installBtn && installBtn.hidden) {
+    // 2) Flusso standard (Chrome/Edge/Android)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
       showBtn();
-      installBtn.onclick = () => {
-        const ua = navigator.userAgent || '';
-        if (/iPhone|iPad|iPod/i.test(ua)) {
-          alert('iPhone/iPad:\n1) Tocca • Condividi\n2) “Aggiungi alla schermata Home”\n3) Conferma Nome → Aggiungi');
-        } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
-          alert('Safari (macOS): File → Aggiungi al Dock.');
-        } else {
-          alert('Se il prompt non compare:\n• Usa Chrome/Edge\n• Assicurati HTTPS attivo\n• Manifest e Service Worker devono essere validi.');
-        }
-      };
-    }
-  }, 2500);
+      if (installBtn) {
+        installBtn.onclick = async () => {
+          try {
+            await deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            if (choice && choice.outcome === 'accepted') hideBtn();
+          } catch (_) { /* no-op */ }
+          deferredPrompt = null;
+        };
+      }
+    });
 
-  // 4) Registrazione Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
+    // 3) Fallback se l’evento non arriva (iOS Safari & co.)
+    setTimeout(() => {
+      if (!deferredPrompt && installBtn && installBtn.hidden) {
+        showBtn();
+        installBtn.onclick = () => {
+          const ua = navigator.userAgent || '';
+          if (/iPhone|iPad|iPod/i.test(ua)) {
+            alert('iPhone/iPad:\n1) Tocca • Condividi\n2) “Aggiungi alla schermata Home”\n3) Conferma Nome → Aggiungi');
+          } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
+            alert('Safari (macOS): File → Aggiungi al Dock.');
+          } else {
+            alert('Se il prompt non compare:\n• Usa Chrome/Edge\n• Assicurati HTTPS attivo\n• Manifest e Service Worker devono essere validi.');
+          }
+        };
+      }
+    }, 2500);
+
+    // 4) Registrazione Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  })();
 })();
