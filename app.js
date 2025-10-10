@@ -1,6 +1,6 @@
-// app.js — v6.13
+// app.js — v6.10
 // Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
-// + i18n + share/csv/pdf/save + PWA + URL state restore
+// + i18n + share/csv/pdf/save + PWA
 
 (function () {
   'use strict';
@@ -13,20 +13,16 @@
     (x == null || x === '' ? '-' :
       Number(x).toLocaleString(curLang() === 'en' ? 'en-US' : 'it-IT')) + (unit ? ' ' + unit : '');
 
-  // stop propagation utility (iOS safe)
-  function stopRowPropagation(el) {
-    ['click','pointerdown','touchstart'].forEach(evt =>
-      el.addEventListener(evt, ev => ev.stopPropagation(), { passive: true })
-    );
-  }
-
   // ------------------ static docs ------------------
   const PDF = {
     withbase:   './docs/scheda_con_pedana.pdf',
     baseless:   './docs/scheda_senza_pedana_2022.pdf',
     manuale:    './docs/manuale_tecnico_presentazione.pdf',
     fondazioni: './docs/fondazioni_cascos_c4c.pdf',
+    // pulsante “misure generali bracci vs tipi veicolo”
     arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
+    // alternativa (link GitHub diretto):
+    // arms_general: 'https://github.com/pezzaliapp/Cascos_Configuratore/blob/main/ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf?raw=1'
   };
 
   // ------------------ ARMS (misure bracci) ------------------
@@ -55,51 +51,59 @@
     'C4S':              ARMS_PATH + 'misure_C4S.pdf',
     'C4SXL':            ARMS_PATH + 'misure_C4SXL.pdf',
     'C4SVS':            ARMS_PATH + 'misure_C4SVS.pdf',
-    'C5S':              ARMS_PATH + 'misure_C5S.pdf',
     'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
     'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
     'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',     // alias se nel dataset
-    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',  // alias citato
+    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',  // alias che avevi citato
     'C7S':              ARMS_PATH + 'misure_C7S.pdf',
 
     // --- utilità ---
     'MISURE TAMPONI':   ARMS_PATH + 'MISURE TAMPONI.pdf'
   };
 
-  // Pagine manuale per tavole bracci (solo fallback)
+  // Pagine nel manuale per tavole bracci (fallback se proprio vuoi aprire il manuale)
   const ARMS_PAGES = { 'C3.2': 7, 'C3.2 Comfort': 13, 'C3.5': 19 };
 
-  // ------------------ Schede commerciali per modello ------------------
+  // ------------------ schede commerciali per modello ------------------
+  // Mappate ai NOMI FILE che hai appena caricato (attenzione a CONFORT/WAGON/XL_WAGON).
   const SHEET_FILES = {
     withbase: {
-      'C3.2':         './docs/scheda_C3.2_con_pedana.pdf',
-      'C3.2 Comfort': './docs/scheda_C3.2CONFORT_con_pedana.pdf',
-      'C3.5':         './docs/scheda_C3.5_con_pedana.pdf',
-      'C3.5XL':       './docs/scheda_C3.5XL_con_pedana.pdf',
-      'C4':           './docs/scheda_C4_con_pedana.pdf',
-      'C4XL':         './docs/scheda_C4XL_con_pedana.pdf',
-      'C5':           './docs/scheda_C5_con_pedana.pdf',
-      'C5 WAGON':     './docs/scheda_C5WAGON_con_pedana.pdf',
-      'C5 XLWAGON':   './docs/scheda_C5XL_WAGON_con_pedana.pdf',
-      'C5.5':         './docs/scheda_C5.5_con_pedana.pdf',
-      'C5.5 WAGON':   './docs/scheda_C5.5WAGON_con_pedana.pdf'
+      'C3.2':          './docs/scheda_C3.2_con_pedana.pdf',
+      'C3.2 Comfort':  './docs/scheda_C3.2CONFORT_con_pedana.pdf', // file è "CONFORT"
+      'C3.5':          './docs/scheda_C3.5_con_pedana.pdf',
+      'C3.5XL':        './docs/scheda_C3.5XL_con_pedana.pdf',
+      'C4':            './docs/scheda_C4_con_pedana.pdf',
+      'C4XL':          './docs/scheda_C4XL_con_pedana.pdf',
+      // C5 (base) non fornita → fallback su PDF consolidato
+      'C5 WAGON':      './docs/scheda_C5WAGON_con_pedana.pdf',
+      'C5 XLWAGON':    './docs/scheda_C5XL_WAGON_con_pedana.pdf',   // utile se un giorno lo aggiungi al dataset
+      'C5.5':          './docs/scheda_C5.5_con_pedana.pdf',
+      'C5.5 WAGON':    './docs/scheda_C5.5WAGON_con_pedana.pdf'
     },
     baseless: {
-      'C3.2S':         './docs/scheda_C3.2S_senza_pedana.pdf',
-      'C3.2S CONFORT': './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
-      'C3.2S SPORT':   './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
-      'C3.5S':         './docs/scheda_C3.5S_senza_pedana.pdf',
-      'C3.5SXL':       './docs/scheda_C3.5SXL_senza_pedana.pdf',
-      'C4S':           './docs/scheda_C4S_senza_pedana.pdf',
-      'C4SXL':         './docs/scheda_C4SXL_senza_pedana.pdf',   // ✅ fix (prima C4.5SXL)
-      'C5S':           './docs/scheda_C5S_senza_pedana.pdf',
-      'C5.5S':         './docs/scheda_C5.5S_senza_pedana.pdf',
-      'C5.5SWAGON':    './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
-      'C5SWAGON':      './docs/scheda_C5SWAGON_senza_pedana.pdf'
+      // C3.2S – varianti
+      'C3.2S':           './docs/scheda_C3.2S_senza_pedana.pdf',
+      'C3.2S CONFORT':   './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
+      'C3.2S SPORT':     './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
+
+      // C3.5S – standard + XL
+      'C3.5S':           './docs/scheda_C3.5S_senza_pedana.pdf',
+      'C3.5SXL':         './docs/scheda_C3.5SXL_senza_pedana.pdf',
+
+      // C4S – standard + XL (file: C4.5SXL → mappato a C4SXL)
+      'C4S':             './docs/scheda_C4S_senza_pedana.pdf',
+      'C4SXL':           './docs/scheda_C4.5SXL_senza_pedana.pdf',
+
+      // C5.5S – standard + WAGON
+      'C5.5S':           './docs/scheda_C5.5S_senza_pedana.pdf',
+      'C5.5SWAGON':      './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
+
+      // C5SWAGON (senza pedana)
+      'C5SWAGON':        './docs/scheda_C5SWAGON_senza_pedana.pdf'
     }
   };
 
-  // Pagine “schede generali” nel Manuale (fallback)
+  // Pagine “schede generali” nel Manuale (fallback per la vista generale)
   const MANUAL_PAGES = {
     'C3.2': 5, 'C3.5': 12, 'C4': 16, 'C4XL': 18, 'C5': 20, 'C5.5': 22, 'C5 WAGON': 25,
     'C3.2S': 32, 'C3.5S': 36, 'C4S': 40, 'C5.5S': 44
@@ -266,93 +270,10 @@
 
   // ------------------ dataset ------------------
   let MODELS = [];
-
-  // URL anti-cache locale (compatibile con SW ignoreSearch)
-  function withNoStore(u) {
-    try {
-      const url = new URL(u, location.href);
-      if (!url.searchParams.has('v') && !url.searchParams.has('t')) {
-        url.searchParams.set('t', Date.now());
-      }
-      return url.toString();
-    } catch { return u; }
-  }
-  const DATA_URL = withNoStore(window.MODELS_URL || './models.json');
-
-  // ------------------ URL state (restore da querystring) ------------------
-  const qp = new URLSearchParams(location.search);
-  const preselect = {
-    lang: qp.get('lang') || null,
-    ids:  (qp.get('ids') || '').split(',').map(s => s.trim()).filter(Boolean)
-  };
-  // alloca restore per inputs; li settiamo appena esistono in DOM
-  const restoreInputs = {
-    H: 'inpH', W: 'inpW', T: 'inpThickness',
-    C: 'inpConcrete', P: 'inpPower', B: 'inpBase',
-    GVW: 'inpGVW', WB: 'inpWB', V: 'vehicleSel'
-  };
-  Object.entries(restoreInputs).forEach(([q, id]) => {
-    const v = qp.get(q);
-    if (v != null && v !== '') {
-      const el = document.getElementById(id);
-      if (el) el.value = v;
-      // se il lang arriva da URL, applichiamolo subito (prima del fetch)
-      if (q === 'V' && id === 'vehicleSel' && el) {
-        // noop: popolazione vera dopo initVehicleFilter()
-      }
-    }
-  });
-  if (preselect.lang) {
-    const sel = $('#langSel'); if (sel) sel.value = preselect.lang;
-    applyLang(preselect.lang);
-  }
-
-  // Caricamento modelli
-  fetch(DATA_URL, { cache: 'no-store' })
-    .then(r => {
-      if (!r.ok) throw new Error(`HTTP ${r.status} su ${DATA_URL}`);
-      const ct = r.headers.get('content-type') || '';
-      if (!/application\/json|text\/json/i.test(ct)) {
-        console.warn('Attenzione: content-type non JSON per models.json:', ct);
-      }
-      return r.json();
-    })
-    .then(d => {
-      if (!Array.isArray(d)) throw new Error('models.json non è un array');
-      MODELS = d;
-      initVehicleFilter();
-      // se c’era lang in URL ma la select non esisteva ancora, applica ora
-      if (preselect.lang) {
-        const sel = $('#langSel'); if (sel) sel.value = preselect.lang;
-        applyLang(preselect.lang);
-      } else {
-        applyLang(document.documentElement.lang || 'it');
-      }
-      calculate(); // primo render
-
-      // pre-seleziona eventuali ID passati in URL
-      if (preselect.ids.length) {
-        // ritarda di un tick per essere sicuri che i checkbox siano in DOM
-        setTimeout(() => {
-          const setIds = new Set(preselect.ids);
-          $$('.pick').forEach(chk => { if (setIds.has(chk.dataset.id)) chk.checked = true; });
-        }, 0);
-      }
-    })
-    .catch(err => {
-      console.error('Errore nel caricamento di models.json:', err);
-      MODELS = [];
-      initVehicleFilter();
-      applyLang(document.documentElement.lang || 'it');
-
-      const warnings = document.getElementById('warnings');
-      if (warnings) {
-        const s = document.createElement('span');
-        s.className = 'tag bad';
-        s.textContent = 'Impossibile caricare i modelli (rete/cache/MIME).';
-        warnings.appendChild(s);
-      }
-    });
+  fetch('./models.json')
+    .then(r => r.json())
+    .then(d => { MODELS = d || []; initVehicleFilter(); applyLang('it'); })
+    .catch(() => { MODELS = []; initVehicleFilter(); applyLang('it'); });
 
   // ------------------ vehicle types / defaults / compat ------------------
   const VEHICLE_TYPES = {
@@ -375,12 +296,13 @@
     lcv:{kg:3200, wb:3300, use:'auto', duty:10}
   };
 
-  // Compatibilità (gli id devono corrispondere a MODELS[].id)
+  // Compatibilità (id devono corrispondere a MODELS[].id)
   const VEHICLE_COMPAT = {
     city:  ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S'],
     sedan: ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S','C4XL'],
     suv:   ['C3.5','C4','C4XL','C5','C5.5','C5.5S'],
     mpv:   ['C3.5','C4','C4XL'],
+    // include versioni senza basamento adatte ai furgoni
     van:   ['C4S','C4SXL','C4XL','C5','C5.5','C5.5S','C5 WAGON','C5SWAGON','C5.5SWAGON'],
     lcv:   ['C5','C5.5','C5 WAGON','C5.5S','C5SWAGON','C5.5SWAGON']
   };
@@ -388,7 +310,7 @@
   function populateVehicleSelect(lang) {
     const sel = $('#vehicleSel');
     if (!sel) return;
-    const cur = sel.value || qp.get('V') || 'any';
+    const cur = sel.value || 'any';
     sel.innerHTML = '';
     Object.entries(VEHICLE_TYPES).forEach(([k,labels]) => {
       const opt = document.createElement('option');
@@ -402,6 +324,7 @@
     const sel = $('#vehicleSel');
     if (!sel) return;
     populateVehicleSelect(curLang());
+    sel.value = 'any';
     sel.addEventListener('change', () => {
       const d = VEHICLE_DEFAULTS[sel.value];
       if (d) {
@@ -412,8 +335,6 @@
       }
       safeRender();
     });
-    // se in query è già stato passato V, lasciamo quel valore; altrimenti 'any'
-    if (!qp.get('V')) sel.value = 'any';
     const lbl = $('#t_secVeh'); if (lbl) lbl.textContent = (I18N[curLang()]||I18N.it).secVeh;
   }
 
@@ -483,16 +404,15 @@
       const armsUrl = buildArmsUrl(m.id);
       const armsStr = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '–')}–${(m.arms.max_mm ?? '–')} mm` : '–';
       const baseChip = `<div class="tag" style="margin-top:4px">${isWithBase ? L.withbase : L.baseless}</div>`;
-
       tr.innerHTML = `
         <td>
           <strong>${m.id}</strong>
           <div class="hint">ref. ${m.ref || '-'}</div>
           ${baseChip}
           <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
-            <a class="btn action-sheet" style="padding:2px 8px" href="${schedaUrl}" target="_blank" rel="noopener">${L.sheet_btn}</a>
-            <a class="btn action-arms"  style="padding:2px 8px" href="${armsUrl}"   target="_blank" rel="noopener">${L.arms_btn}</a>
-            <a class="btn action-fond"  style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.fond_btn}</a>
+            <a class="btn" style="padding:2px 8px" href="${schedaUrl}" target="_blank" rel="noopener">${L.sheet_btn}</a>
+            <a class="btn" style="padding:2px 8px" href="${armsUrl}" target="_blank" rel="noopener">${L.arms_btn}</a>
+            <a class="btn" style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.fond_btn}</a>
           </div>
         </td>
         <td>${fmt(m.portata, 'kg')}</td>
@@ -503,15 +423,9 @@
         <td>${m.anchors ? `${m.anchors.qty}× ${m.anchors.type}<br>${m.anchors.concrete}, ≥ ${m.anchors.thickness_min_mm} mm` : '-'}</td>
         <td>${armsStr}</td>
         <td>${issues.length ? issues.map(i => `<span class="tag ${i.cls}">${i.t}</span>`).join(' ') : `<span class="ok">${L.ok}</span>`}</td>
-        <td><input type="checkbox" class="pick" data-id="${m.id}"></td>`;
-
-      // click sulla riga → scheda di stampa
+        <td><input type="checkbox" class="pick" data-id="${m.id}" onclick="event.stopPropagation()"></td>`;
       tr.style.cursor = 'pointer';
       tr.addEventListener('click', () => openSheet(m, L));
-
-      // evitare che i bottoni interni/scelta propaghino il click alla riga
-      tr.querySelectorAll('.action-sheet,.action-arms,.action-fond,.pick').forEach(stopRowPropagation);
-
       rows.appendChild(tr);
     });
   }
@@ -527,7 +441,6 @@
     set('C', $('#inpConcrete')?.value); set('P', $('#inpPower')?.value); set('B', $('#inpBase')?.value);
     set('GVW', $('#inpGVW')?.value); set('WB', $('#inpWB')?.value);
     if ($('#vehicleSel')) set('V', $('#vehicleSel').value);
-    set('lang', curLang());
     if (extras) Object.keys(extras).forEach(k => set(k, extras[k]));
     return p.toString();
   }
@@ -638,59 +551,16 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
     calculate();
   });
 
-  // ------------------ PWA (install + fallback iOS) ------------------
-  (function setupPWA() {
-    const installBtn = document.getElementById('installBtn');
-    let deferredPrompt = null;
-
-    const showBtn = () => { if (installBtn) installBtn.hidden = false; };
-    const hideBtn = () => { if (installBtn) installBtn.hidden = true; };
-
-    // 1) Nascondi se già installata
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.navigator.standalone === true;
-    if (isStandalone) hideBtn();
-
-    window.addEventListener('appinstalled', () => hideBtn());
-
-    // 2) Flusso standard (Chrome/Edge/Android)
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      showBtn();
-      if (installBtn) {
-        installBtn.onclick = async () => {
-          try {
-            await deferredPrompt.prompt();
-            const choice = await deferredPrompt.userChoice;
-            if (choice && choice.outcome === 'accepted') hideBtn();
-          } catch (_) { /* no-op */ }
-          deferredPrompt = null;
-        };
-      }
-    });
-
-    // 3) Fallback se l’evento non arriva (iOS Safari & co.)
-    setTimeout(() => {
-      if (!deferredPrompt && installBtn && installBtn.hidden) {
-        showBtn();
-        installBtn.onclick = () => {
-          const ua = navigator.userAgent || '';
-          if (/iPhone|iPad|iPod/i.test(ua)) {
-            alert('iPhone/iPad:\n1) Tocca • Condividi\n2) “Aggiungi alla schermata Home”\n3) Conferma Nome → Aggiungi');
-          } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
-            alert('Safari (macOS): File → Aggiungi al Dock.');
-          } else {
-            alert('Se il prompt non compare:\n• Usa Chrome/Edge\n• Assicurati HTTPS attivo\n• Manifest e Service Worker devono essere validi.');
-          }
-        };
-      }
-    }, 2500);
-
-    // 4) Registrazione Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+  // ------------------ PWA ------------------
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferredPrompt = e;
+    const b = $('#installBtn');
+    if (b) {
+      b.hidden = false;
+      b.onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; b.hidden = true; } };
     }
-  })();
+  });
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+
 })();
