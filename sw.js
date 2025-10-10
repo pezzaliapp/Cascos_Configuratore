@@ -1,18 +1,20 @@
-// sw.js — v5 — safe app-shell + HARD PDF BYPASS
+// sw.js — v5.1 — app-shell sicura + hard bypass PDF + HTML statici ok
 const CACHE = 'cascos-config-v5';
 const CORE = [
   './',
   './index.html',
+  './README.html',
+  './LICENSE.html',
   './app.js',
   './models.json',
   './manifest.webmanifest',
 ];
 
-self.addEventListener('install', e => {
+self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
 
-self.addEventListener('activate', e => {
+self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.map(k => (k === CACHE ? null : caches.delete(k))))
@@ -20,35 +22,34 @@ self.addEventListener('activate', e => {
   );
 });
 
-self.addEventListener('fetch', e => {
+self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
+  const pathname = (url.pathname || '').toLowerCase();
 
-  // ---- HARD BYPASS: qualsiasi PDF va SEMPRE in rete (niente app-shell, niente cache) ----
-  if ((url.pathname || '').toLowerCase().endsWith('.pdf')) {
+  // ---- HARD BYPASS: qualsiasi PDF SEMPRE in rete (no cache, no app-shell) ----
+  if (pathname.endsWith('.pdf')) {
     e.respondWith(fetch(req));
     return;
   }
 
-  // Bypass anche per asset statici: prova rete poi cache
-  const pathname = url.pathname || '';
+  // ---- Asset statici (inclusi .html): rete -> fallback cache ----
   const isStaticAsset =
-    /\.(?:js|css|png|jpg|jpeg|webp|svg|ico|json|webmanifest)$/.test(pathname) ||
-    pathname.startsWith('/docs/') || pathname.startsWith('/ARMS_FILES/');
+    /\.(?:html|js|css|png|jpg|jpeg|webp|svg|ico|json|webmanifest)$/.test(pathname) ||
+    pathname.startsWith('/docs/') || pathname.startsWith('/arms_files/');
 
   if (isStaticAsset) {
     e.respondWith(fetch(req).catch(() => caches.match(req)));
     return;
   }
 
-  // ---- APP-SHELL per navigazioni HTML senza estensione ----
-  const acceptHTML = req.headers.get('accept') || '';
-  const isNavigate = req.mode === 'navigate' ||
-    (acceptHTML.includes('text/html') && !pathname.split('/').pop().includes('.'));
+  // ---- App-shell SOLO per navigazioni senza estensione ----
+  const hasExtension = /\.[a-z0-9]+$/i.test(pathname);
+  const isNavigate = req.mode === 'navigate' && !hasExtension && url.origin === location.origin;
 
-  if (isNavigate && url.origin === location.origin) {
+  if (isNavigate) {
     e.respondWith(
       fetch('./index.html', { cache: 'no-cache' })
         .then(r => (r.ok ? r : caches.match('./index.html')))
