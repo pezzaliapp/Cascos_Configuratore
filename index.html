@@ -207,21 +207,20 @@
     <section class="card">
       <div class="inner">
         <h2>4) Documenti utili</h2>
-        <ul style="margin:0;padding-left:18px">
-          <li><a id="lnkFondazioni" href="./docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">Schema fondazioni (C5/C5.5)</a></li>
-          <li><a id="lnkManuale" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">Manuale tecnico (multi-lingua)</a></li>
-          <li><a id="lnkPedana" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">Versioni con pedana</a></li>
-          <li><a id="lnkSenzaPedana" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">Versioni senza pedana</a></li>
-          <!-- nuovo: misure generali bracci per tipologia veicolo -->
-          <li><a id="lnkArmsGeneral" href="./docs/misure/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali bracci (per tipo veicolo)</a></li>
-        </ul>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <a class="btn" href="./docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">🏗️ Schema fondazioni</a>
+          <a class="btn" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">📘 Manuale tecnico</a>
+          <a class="btn" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
+          <a class="btn" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
+          <!-- nuovo: misure generali bracci vs tipi veicolo -->
+          <a class="btn" id="armsGeneralBtn" href="./ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="wrap"><div>© Cascos_Configuratore — PWA open-source.</div></footer>
 
-  <!-- carica dopo l'HTML per evitare race su mobile -->
   <script src="./app.js" defer></script>
   <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
 </body>
