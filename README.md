@@ -80,7 +80,9 @@ Ogni uso non autorizzato, copia, diffusione o condivisione dei file o dei docume
 
 - Il marchio **CASCOS** e le denominazioni dei prodotti appartengono ai rispettivi titolari.  
 - L’uso dei nomi e dei loghi ha finalità **illustrativa e informativa**, non commerciale.  
-- L’autore non è responsabile per danni diretti o indiretti derivanti dall’utilizzo dell’applicazione.  
+- L’autore non è responsabile per danni diretti o indiretti derivanti dall’utilizzo dell’applicazione.
+
+🔗 [Visualizza la licenza completa](https://www.alessandropezzali.it/Cascos_Configuratore/LICENSE.html)
 
 ---
 
