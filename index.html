@@ -129,7 +129,6 @@
       <div class="inner">
         <h2 id="t_sec2">2) Veicolo tipo da sollevare</h2>
 
-        <!-- nuovo: selettore tipo veicolo -->
         <div class="row">
           <div>
             <label id="t_secVeh" for="vehicleSel">Tipo di veicolo</label>
@@ -213,12 +212,17 @@
           <li><a id="lnkManuale" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">Manuale tecnico (multi-lingua)</a></li>
           <li><a id="lnkPedana" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">Versioni con pedana</a></li>
           <li><a id="lnkSenzaPedana" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">Versioni senza pedana</a></li>
+          <!-- nuovo: misure generali bracci per tipologia veicolo -->
+          <li><a id="lnkArmsGeneral" href="./docs/misure/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali bracci (per tipo veicolo)</a></li>
         </ul>
       </div>
     </section>
   </main>
 
   <footer class="wrap"><div>© Cascos_Configuratore — PWA open-source.</div></footer>
-  <script src="./app.js"></script>
+
+  <!-- carica dopo l'HTML per evitare race su mobile -->
+  <script src="./app.js" defer></script>
+  <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
 </body>
 </html>
