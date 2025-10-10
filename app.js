@@ -1,4 +1,4 @@
-// app.js — v6.5
+// app.js — v6.6
 // Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
 // + i18n + share/csv/pdf/save + PWA
 
@@ -21,12 +21,12 @@
     fondazioni: './docs/fondazioni_cascos_c4c.pdf',
     // pulsante “misure generali bracci vs tipi veicolo”
     arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
-    // in alternativa, per link diretto GitHub:
+    // in alternativa (link GitHub diretto):
     // arms_general: 'https://github.com/pezzaliapp/Cascos_Configuratore/blob/main/ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf?raw=1'
   };
 
   // ------------------ ARMS (misure bracci) ------------------
-  // I PDF sono nella cartella /ARMS_FILES del repo (come mi hai indicato).
+  // I PDF sono nella cartella /ARMS_FILES del repo.
   const ARMS_PATH = './ARMS_FILES/';
   const ARMS_FILES = {
     // --- con basamento / pedana ---
@@ -36,6 +36,7 @@
     'C3.5XL':           ARMS_PATH + 'misure_C3.5XL.pdf',
     'C4':               ARMS_PATH + 'misure_C4.pdf',
     'C4XL':             ARMS_PATH + 'misure_C4XL.pdf',
+    'C5':               ARMS_PATH + 'misure_C5.pdf',           // se assente, resta 404 (fallback manuale non applicabile qui)
     'C5.5':             ARMS_PATH + 'misure_C5.5.pdf',
     'C5 WAGON':         ARMS_PATH + 'misure_C5WAGON.pdf',
     'C5 XLWAGON':       ARMS_PATH + 'misure_C5XLWAGON.pdf',
@@ -43,7 +44,7 @@
 
     // --- senza basamento / sbalzo libero ---
     'C3.2S':            ARMS_PATH + 'misure_C3.2S.pdf',
-    'C3.2S CONFORT':    ARMS_PATH + 'misure_C3.2S_CONFORT.pdf',      // nome file come caricato
+    'C3.2S CONFORT':    ARMS_PATH + 'misure_C3.2S_CONFORT.pdf',
     'C3.2S VS PREMIUM': ARMS_PATH + 'misure_C3.2SVS_PREMIUM.pdf',
     'C3.5S':            ARMS_PATH + 'misure_C3.5S.pdf',
     'C3.5SXL':          ARMS_PATH + 'misure_C3.5SXL.pdf',
@@ -52,20 +53,19 @@
     'C4SVS':            ARMS_PATH + 'misure_C4SVS.pdf',
     'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
     'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
-    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',           // se nel dataset appare “SWAGON”
-    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',        // alias che hai caricato
+    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',    // alias se presente nel dataset
+    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf', // alias che hai caricato
     'C7S':              ARMS_PATH + 'misure_C7S.pdf',
 
     // --- utilità ---
     'MISURE TAMPONI':   ARMS_PATH + 'MISURE TAMPONI.pdf'
   };
 
-  // Pagine nel manuale per le tavole bracci (fallback se un modello non ha PDF dedicato)
+  // Pagine nel manuale per le tavole bracci (fallback solo se vuoi aprire il manuale)
   const ARMS_PAGES = {
     'C3.2': 7,
     'C3.2 Comfort': 13,
     'C3.5': 19
-    // altri modelli → fallback #search nel manuale
   };
 
   // Schede commerciali per modello (con fallback ai PDF consolidati)
@@ -286,8 +286,9 @@
     sedan: ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S','C4XL'],
     suv:   ['C3.5','C4','C4XL','C5','C5.5','C5.5S'],
     mpv:   ['C3.5','C4','C4XL'],
-    van:   ['C4XL','C5','C5.5','C5 WAGON'],
-    lcv:   ['C5','C5.5','C5 WAGON','C5.5S'] // include versioni S idonee a veicoli lunghi
+    // ⬇️ aggiunte versioni senza basamento adatte ai furgoni
+    van:   ['C4S','C4XL','C5','C5.5','C5.5S','C5 WAGON'],
+    lcv:   ['C5','C5.5','C5 WAGON','C5.5S']
   };
 
   function populateVehicleSelect(lang) {
