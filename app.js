@@ -1,7 +1,7 @@
-// app.js — v6.10
-// Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
+<script>
+// app.js — v6.7
+// Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES)
 // + i18n + share/csv/pdf/save + PWA
-
 (function () {
   'use strict';
 
@@ -19,10 +19,7 @@
     baseless:   './docs/scheda_senza_pedana_2022.pdf',
     manuale:    './docs/manuale_tecnico_presentazione.pdf',
     fondazioni: './docs/fondazioni_cascos_c4c.pdf',
-    // pulsante “misure generali bracci vs tipi veicolo”
     arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
-    // alternativa (link GitHub diretto):
-    // arms_general: 'https://github.com/pezzaliapp/Cascos_Configuratore/blob/main/ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf?raw=1'
   };
 
   // ------------------ ARMS (misure bracci) ------------------
@@ -44,7 +41,6 @@
     // --- senza basamento / sbalzo libero ---
     'C3.2S':            ARMS_PATH + 'misure_C3.2S.pdf',
     'C3.2S CONFORT':    ARMS_PATH + 'misure_C3.2S_CONFORT.pdf',
-    'C3.2S SPORT':      ARMS_PATH + 'misure_C3.2S_SPORT.pdf',
     'C3.2S VS PREMIUM': ARMS_PATH + 'misure_C3.2SVS_PREMIUM.pdf',
     'C3.5S':            ARMS_PATH + 'misure_C3.5S.pdf',
     'C3.5SXL':          ARMS_PATH + 'misure_C3.5SXL.pdf',
@@ -53,57 +49,47 @@
     'C4SVS':            ARMS_PATH + 'misure_C4SVS.pdf',
     'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
     'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
-    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',     // alias se nel dataset
-    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',  // alias che avevi citato
+    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',
+    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',
     'C7S':              ARMS_PATH + 'misure_C7S.pdf',
 
     // --- utilità ---
     'MISURE TAMPONI':   ARMS_PATH + 'MISURE TAMPONI.pdf'
   };
 
-  // Pagine nel manuale per tavole bracci (fallback se proprio vuoi aprire il manuale)
-  const ARMS_PAGES = { 'C3.2': 7, 'C3.2 Comfort': 13, 'C3.5': 19 };
+  // Pagine nel manuale per le tavole bracci (fallback)
+  const ARMS_PAGES = {
+    'C3.2': 7,
+    'C3.2 Comfort': 13,
+    'C3.5': 19
+  };
 
-  // ------------------ schede commerciali per modello ------------------
-  // Mappate ai NOMI FILE che hai appena caricato (attenzione a CONFORT/WAGON/XL_WAGON).
+  // Schede commerciali per modello
   const SHEET_FILES = {
     withbase: {
-      'C3.2':          './docs/scheda_C3.2_con_pedana.pdf',
-      'C3.2 Comfort':  './docs/scheda_C3.2CONFORT_con_pedana.pdf', // file è "CONFORT"
-      'C3.5':          './docs/scheda_C3.5_con_pedana.pdf',
-      'C3.5XL':        './docs/scheda_C3.5XL_con_pedana.pdf',
-      'C4':            './docs/scheda_C4_con_pedana.pdf',
-      'C4XL':          './docs/scheda_C4XL_con_pedana.pdf',
-      // C5 (base) non fornita → fallback su PDF consolidato
-      'C5 WAGON':      './docs/scheda_C5WAGON_con_pedana.pdf',
-      'C5 XLWAGON':    './docs/scheda_C5XL_WAGON_con_pedana.pdf',   // utile se un giorno lo aggiungi al dataset
-      'C5.5':          './docs/scheda_C5.5_con_pedana.pdf',
-      'C5.5 WAGON':    './docs/scheda_C5.5WAGON_con_pedana.pdf'
+      'C3.2':   './docs/scheda_C3.2_con_pedana.pdf',
+      'C3.5':   './docs/scheda_C3.5_con_pedana.pdf',
+      'C4':     './docs/scheda_C4_con_pedana.pdf',
+      'C4XL':   './docs/scheda_C4XL_con_pedana.pdf',
+      'C5':     './docs/scheda_C5_con_pedana.pdf',
+      'C5.5':   './docs/scheda_C5.5_con_pedana.pdf',
+      'C5 WAGON':'./docs/scheda_C5_WAGON_con_pedana.pdf'
     },
     baseless: {
-      // C3.2S – varianti
       'C3.2S':           './docs/scheda_C3.2S_senza_pedana.pdf',
       'C3.2S CONFORT':   './docs/scheda_C3.2S_CONFORT_senza_pedana.pdf',
       'C3.2S SPORT':     './docs/scheda_C3.2S_SPORT_senza_pedana.pdf',
-
-      // C3.5S – standard + XL
       'C3.5S':           './docs/scheda_C3.5S_senza_pedana.pdf',
       'C3.5SXL':         './docs/scheda_C3.5SXL_senza_pedana.pdf',
-
-      // C4S – standard + XL (file: C4.5SXL → mappato a C4SXL)
       'C4S':             './docs/scheda_C4S_senza_pedana.pdf',
       'C4SXL':           './docs/scheda_C4.5SXL_senza_pedana.pdf',
-
-      // C5.5S – standard + WAGON
       'C5.5S':           './docs/scheda_C5.5S_senza_pedana.pdf',
       'C5.5SWAGON':      './docs/scheda_C5.5SWAGON_senza_pedana.pdf',
-
-      // C5SWAGON (senza pedana)
       'C5SWAGON':        './docs/scheda_C5SWAGON_senza_pedana.pdf'
     }
   };
 
-  // Pagine “schede generali” nel Manuale (fallback per la vista generale)
+  // Pagine “schede generali” nel Manuale (fallback)
   const MANUAL_PAGES = {
     'C3.2': 5, 'C3.5': 12, 'C4': 16, 'C4XL': 18, 'C5': 20, 'C5.5': 22, 'C5 WAGON': 25,
     'C3.2S': 32, 'C3.5S': 36, 'C4S': 40, 'C5.5S': 44
@@ -147,7 +133,7 @@
       withbase:'Con basamento', baseless:'Senza basamento',
       ok:'✓ Compatibile', warn_slab:'Soletta < 170 mm: adeguare prima del montaggio', warn_weight:'Veicolo > 3.5 t: considerare serie C5 / C5.5',
       share:'Condividi', csv:'CSV', pdfmulti:'PDF multiplo',
-      arms_btn:'📐 Misure bracci', sheet_btn:'📄 Scheda', fond_btn:'🏗️ Fondazioni',
+      arms_btn:'📐 Misure bracci', sheet_btn:'📄 Scheda', manual_btn:'📘 Manuale', fond_btn:'🏗️ Fondazioni',
       arms_general:'📐 Misure generali (tipi veicolo)'
     },
     en: {
@@ -169,7 +155,7 @@
       withbase:'With base', baseless:'Baseless',
       ok:'✓ Compatible', warn_slab:'Slab < 170 mm: upgrade before installation', warn_weight:'Vehicle > 3.5 t: consider C5 / C5.5',
       share:'Share', csv:'CSV', pdfmulti:'Multi PDF',
-      arms_btn:'📐 Arms sizes', sheet_btn:'📄 Sheet', fond_btn:'🏗️ Foundations',
+      arms_btn:'📐 Arms sizes', sheet_btn:'📄 Sheet', manual_btn:'📘 Manual', fond_btn:'🏗️ Foundations',
       arms_general:'📐 General arms vs. vehicle'
     },
     es: {
@@ -191,7 +177,7 @@
       withbase:'Con base', baseless:'Sin base',
       ok:'✓ Compatible', warn_slab:'Losa < 170 mm: reforzar', warn_weight:'Vehículo > 3.5 t: considerar C5 / C5.5',
       share:'Compartir', csv:'CSV', pdfmulti:'PDF múltiple',
-      arms_btn:'📐 Medidas brazos', sheet_btn:'📄 Ficha', fond_btn:'🏗️ Cimientos',
+      arms_btn:'📐 Medidas brazos', sheet_btn:'📄 Ficha', manual_btn:'📘 Manual', fond_btn:'🏗️ Cimientos',
       arms_general:'📐 Medidas generales (tipos)'
     },
     fr: {
@@ -213,7 +199,7 @@
       withbase:'Avec base', baseless:'Sans base',
       ok:'✓ Compatible', warn_slab:'Dalle < 170 mm', warn_weight:'Véhicule > 3,5 t : C5 / C5.5',
       share:'Partager', csv:'CSV', pdfmulti:'PDF multiple',
-      arms_btn:'📐 Bras (cotes)', sheet_btn:'📄 Fiche', fond_btn:'🏗️ Fondations',
+      arms_btn:'📐 Bras (cotes)', sheet_btn:'📄 Fiche', manual_btn:'📘 Manuel', fond_btn:'🏗️ Fondations',
       arms_general:'📐 Cotes générales (types)'
     },
     pt: {
@@ -235,7 +221,7 @@
       withbase:'Com base', baseless:'Sem base',
       ok:'✓ Compatível', warn_slab:'Laje < 170 mm', warn_weight:'Veículo > 3,5 t: C5 / C5.5',
       share:'Compartilhar', csv:'CSV', pdfmulti:'PDF múltiplo',
-      arms_btn:'📐 Medidas braços', sheet_btn:'📄 Ficha', fond_btn:'🏗️ Fundação',
+      arms_btn:'📐 Medidas braços', sheet_btn:'📄 Ficha', manual_btn:'📘 Manual', fond_btn:'🏗️ Fundação',
       arms_general:'📐 Medidas gerais (tipos)'
     }
   };
@@ -253,7 +239,7 @@
     const L = I18N[lang] || I18N.it;
     bindings.forEach(([id,key]) => { const el = document.getElementById(id); if (el) el.innerHTML = L[key]; });
 
-    // bottone “Misure generali” (sezione Documenti)
+    // bottone “Misure generali”
     const gen = document.getElementById('armsGeneralBtn');
     if (gen) {
       gen.textContent = L.arms_general || '📐 Misure generali (tipi veicolo)';
@@ -279,7 +265,7 @@
   const VEHICLE_TYPES = {
     any:{ it:'Qualsiasi', en:'Any', es:'Cualquiera', fr:'Toutes', pt:'Qualquer' },
     city:{ it:'City / Utilitaria', en:'City / Small', es:'Ciudad / utilitario', fr:'Citadine', pt:'Citadino' },
-    sedan:{ it:'Berlina / Crossover', en:'Sedan / Crossover', es:'Berlina / Crossover', fr:'Berline / Crossover', pt:'Sedan / Crossover' },
+    sedan:{ it:'Berlina / Crossover', en:'Sedan / Crossover', es:'Berlina / Crossover', fr:'Berline / Crossover' , pt:'Sedan / Crossover'},
     suv:{ it:'SUV / Pickup', en:'SUV / Pickup', es:'SUV / Pickup', fr:'SUV / Pickup', pt:'SUV / Pickup' },
     mpv:{ it:'MPV / Monovolume', en:'MPV / Minivan', es:'Monovolumen', fr:'Monospace', pt:'Minivan' },
     van:{ it:'Van / Furgoni', en:'Van / LCV', es:'Furgón', fr:'Fourgon', pt:'Furgão' },
@@ -296,13 +282,12 @@
     lcv:{kg:3200, wb:3300, use:'auto', duty:10}
   };
 
-  // Compatibilità (id devono corrispondere a MODELS[].id)
+  // Compatibilità (gli id devono corrispondere a MODELS[].id)
   const VEHICLE_COMPAT = {
     city:  ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S'],
     sedan: ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S','C4XL'],
     suv:   ['C3.5','C4','C4XL','C5','C5.5','C5.5S'],
     mpv:   ['C3.5','C4','C4XL'],
-    // include versioni senza basamento adatte ai furgoni
     van:   ['C4S','C4SXL','C4XL','C5','C5.5','C5.5S','C5 WAGON','C5SWAGON','C5.5SWAGON'],
     lcv:   ['C5','C5.5','C5 WAGON','C5.5S','C5SWAGON','C5.5SWAGON']
   };
@@ -400,19 +385,22 @@
       const tr = document.createElement('tr');
       const issues = issuesFor(m);
       const isWithBase = m.base === 'withbase';
+
       const schedaUrl = buildSheetUrl(m.id, isWithBase ? 'withbase' : 'baseless');
-      const armsUrl = buildArmsUrl(m.id);
+      const armsUrl   = buildArmsUrl(m.id);
+
       const armsStr = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '–')}–${(m.arms.max_mm ?? '–')} mm` : '–';
       const baseChip = `<div class="tag" style="margin-top:4px">${isWithBase ? L.withbase : L.baseless}</div>`;
+
       tr.innerHTML = `
         <td>
           <strong>${m.id}</strong>
           <div class="hint">ref. ${m.ref || '-'}</div>
           ${baseChip}
           <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
-            <a class="btn" style="padding:2px 8px" href="${schedaUrl}" target="_blank" rel="noopener">${L.sheet_btn}</a>
-            <a class="btn" style="padding:2px 8px" href="${armsUrl}" target="_blank" rel="noopener">${L.arms_btn}</a>
-            <a class="btn" style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.fond_btn}</a>
+            <a class="btn doc-link" style="padding:2px 8px" href="${schedaUrl}" target="_blank" rel="noopener">${L.sheet_btn}</a>
+            <a class="btn doc-link" style="padding:2px 8px" href="${armsUrl}" target="_blank" rel="noopener">${L.arms_btn}</a>
+            <a class="btn doc-link" style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.fond_btn}</a>
           </div>
         </td>
         <td>${fmt(m.portata, 'kg')}</td>
@@ -424,8 +412,16 @@
         <td>${armsStr}</td>
         <td>${issues.length ? issues.map(i => `<span class="tag ${i.cls}">${i.t}</span>`).join(' ') : `<span class="ok">${L.ok}</span>`}</td>
         <td><input type="checkbox" class="pick" data-id="${m.id}" onclick="event.stopPropagation()"></td>`;
+
+      // click sulla riga = apre scheda/print (non i bottoni)
       tr.style.cursor = 'pointer';
       tr.addEventListener('click', () => openSheet(m, L));
+
+      // blocca la propagazione dei click sui bottoni documentali
+      tr.querySelectorAll('a.doc-link').forEach(a => {
+        a.addEventListener('click', (ev) => ev.stopPropagation(), { passive: true });
+      });
+
       rows.appendChild(tr);
     });
   }
@@ -564,3 +560,4 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 
 })();
+</script>
