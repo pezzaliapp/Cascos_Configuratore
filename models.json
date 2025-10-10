@@ -7,16 +7,9 @@
     "interasse": 2700,
     "larghezza": 3350,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 12,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "standard", "min_mm": 650, "max_mm": 1200 }
   },
   {
     "id": "C3.2S",
@@ -26,16 +19,9 @@
     "interasse": 2700,
     "larghezza": 3350,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 12,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "standard", "min_mm": 650, "max_mm": 1200 }
   },
   {
     "id": "C3.5",
@@ -45,16 +31,9 @@
     "interasse": 2700,
     "larghezza": 3350,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 12,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "standard", "min_mm": 690, "max_mm": 1325 }
   },
   {
     "id": "C3.5S",
@@ -64,16 +43,21 @@
     "interasse": 2700,
     "larghezza": 3350,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 12,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "standard", "min_mm": 690, "max_mm": 1325 }
+  },
+  {
+    "id": "C3.5XL",
+    "ref": "13168-XL",
+    "base": "withbase",
+    "portata": 3500,
+    "interasse": 2850,
+    "larghezza": 3400,
+    "h_sotto_traversa": 4248,
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "extra-long", "min_mm": 720, "max_mm": 1420 }
   },
   {
     "id": "C4",
@@ -83,16 +67,9 @@
     "interasse": 2700,
     "larghezza": 3350,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 12,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "reinforced", "min_mm": 700, "max_mm": 1330 }
   },
   {
     "id": "C4S",
@@ -102,16 +79,9 @@
     "interasse": 2700,
     "larghezza": 3350,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 12,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "reinforced", "min_mm": 700, "max_mm": 1330 }
   },
   {
     "id": "C4XL",
@@ -121,16 +91,9 @@
     "interasse": 3000,
     "larghezza": 3340,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 12,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 12, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "extra-long", "min_mm": 720, "max_mm": 1420 }
   },
   {
     "id": "C5",
@@ -140,16 +103,9 @@
     "interasse": 2810,
     "larghezza": 3590,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 16,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 16, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "heavy-duty", "min_mm": 750, "max_mm": 1450 }
   },
   {
     "id": "C5.5",
@@ -159,16 +115,9 @@
     "interasse": 2810,
     "larghezza": 3590,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 16,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 16, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "heavy-duty", "min_mm": 750, "max_mm": 1450 }
   },
   {
     "id": "C5.5S",
@@ -178,15 +127,44 @@
     "interasse": 2810,
     "larghezza": 3590,
     "h_sotto_traversa": 4248,
-    "power": [
-      "400/3~",
-      "230/3~"
-    ],
-    "anchors": {
-      "qty": 16,
-      "type": "M16x145",
-      "concrete": "C20/25",
-      "thickness_min_mm": 170
-    }
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 16, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "heavy-duty", "min_mm": 750, "max_mm": 1450 }
+  },
+  {
+    "id": "C5 WAGON",
+    "ref": "13176-W",
+    "base": "withbase",
+    "portata": 5000,
+    "interasse": 3000,
+    "larghezza": 3590,
+    "h_sotto_traversa": 4248,
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 16, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "wagon", "min_mm": 780, "max_mm": 1500 }
+  },
+  {
+    "id": "C5.5 WAGON",
+    "ref": "13998-W",
+    "base": "withbase",
+    "portata": 5500,
+    "interasse": 3000,
+    "larghezza": 3590,
+    "h_sotto_traversa": 4248,
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 16, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "wagon", "min_mm": 780, "max_mm": 1500 }
+  },
+  {
+    "id": "C5.5SWAGON",
+    "ref": "13998SW",
+    "base": "baseless",
+    "portata": 5500,
+    "interasse": 3000,
+    "larghezza": 3590,
+    "h_sotto_traversa": 4248,
+    "power": ["400/3~", "230/3~"],
+    "anchors": { "qty": 16, "type": "M16x145", "concrete": "C20/25", "thickness_min_mm": 170 },
+    "arms": { "type": "wagon", "min_mm": 780, "max_mm": 1500 }
   }
 ]
