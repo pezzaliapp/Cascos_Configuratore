@@ -1,71 +1,74 @@
-// app.js — v6.4
-// Vehicle filter + auto-fill + per-model Arms PDFs + Manual page map + i18n + share/csv/pdf/save + PWA
+// app.js — v6.5
+// Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
+// + i18n + share/csv/pdf/save + PWA
+
 (function () {
   'use strict';
 
-  // ------------------ tiny helpers ------------------
-  const $ = (s) => document.querySelector(s);
+  // ------------------ helpers ------------------
+  const $  = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
-  const langOf = () => document.documentElement.lang || 'it';
-  const nfmt = (x, unit = '') =>
+  const curLang = () => document.documentElement.lang || 'it';
+  const fmt = (x, unit = '') =>
     (x == null || x === '' ? '-' :
-      Number(x).toLocaleString(langOf() === 'en' ? 'en-US' : 'it-IT')) + (unit ? ' ' + unit : '');
+      Number(x).toLocaleString(curLang() === 'en' ? 'en-US' : 'it-IT')) + (unit ? ' ' + unit : '');
 
   // ------------------ static docs ------------------
   const PDF = {
-    withbase: './docs/scheda_con_pedana.pdf',
-    baseless: './docs/scheda_senza_pedana_2022.pdf',
-    manuale: './docs/manuale_tecnico_presentazione.pdf',
+    withbase:   './docs/scheda_con_pedana.pdf',
+    baseless:   './docs/scheda_senza_pedana_2022.pdf',
+    manuale:    './docs/manuale_tecnico_presentazione.pdf',
     fondazioni: './docs/fondazioni_cascos_c4c.pdf',
-    // opzionale: misure generali per tipologia veicolo
-    arms_general: './docs/misure/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
+    // pulsante “misure generali bracci vs tipi veicolo”
+    arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
+    // in alternativa, per link diretto GitHub:
+    // arms_general: 'https://github.com/pezzaliapp/Cascos_Configuratore/blob/main/ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf?raw=1'
   };
 
-  // ---------- per-model “Misure bracci” (metti i file in ./docs/misure/) ----------
-  // Nomi file come da materiali che mi hai inviato.
-  const ARMS_PATH = './docs/misure/';
+  // ------------------ ARMS (misure bracci) ------------------
+  // I PDF sono nella cartella /ARMS_FILES del repo (come mi hai indicato).
+  const ARMS_PATH = './ARMS_FILES/';
   const ARMS_FILES = {
-    // con basamento
-    'C3.2':            ARMS_PATH + 'misure_C3.2.pdf',
-    'C3.2 Comfort':    ARMS_PATH + 'misure_C3.2_Comfort.pdf',
-    'C3.5':            ARMS_PATH + 'misure_C3.5.pdf',
-    'C3.5XL':          ARMS_PATH + 'misure_C3.5XL.pdf',
-    'C4':              ARMS_PATH + 'misure_C4.pdf',
-    'C4XL':            ARMS_PATH + 'misure_C4XL.pdf',
-    'C5':              ARMS_PATH + 'misure_C5.pdf',        // se non presente, lasciamo fallback
-    'C5.5':            ARMS_PATH + 'misure_C5.5.pdf',
-    'C5 WAGON':        ARMS_PATH + 'misure_C5WAGON.pdf',
-    'C5 XLWAGON':      ARMS_PATH + 'misure_C5XLWAGON.pdf',
-    'C5.5 WAGON':      ARMS_PATH + 'misure_C5.5WAGON.pdf',
+    // --- con basamento / pedana ---
+    'C3.2':             ARMS_PATH + 'misure_C3.2.pdf',
+    'C3.2 Comfort':     ARMS_PATH + 'misure_C3.2_Comfort.pdf',
+    'C3.5':             ARMS_PATH + 'misure_C3.5.pdf',
+    'C3.5XL':           ARMS_PATH + 'misure_C3.5XL.pdf',
+    'C4':               ARMS_PATH + 'misure_C4.pdf',
+    'C4XL':             ARMS_PATH + 'misure_C4XL.pdf',
+    'C5.5':             ARMS_PATH + 'misure_C5.5.pdf',
+    'C5 WAGON':         ARMS_PATH + 'misure_C5WAGON.pdf',
+    'C5 XLWAGON':       ARMS_PATH + 'misure_C5XLWAGON.pdf',
+    'C5.5 WAGON':       ARMS_PATH + 'misure_C5.5WAGON.pdf',
 
-    // senza basamento
-    'C3.2S':           ARMS_PATH + 'misure_C3.2S.pdf',
-    'C3.2S CONFORT':   ARMS_PATH + 'misure_C3.2S_CONFORT.pdf',  // alias: se in models.json esiste la variante
-    'C3.2S VS PREMIUM':ARMS_PATH + 'misure_C3.2SVS_PREMIUM.pdf',
-    'C3.5S':           ARMS_PATH + 'misure_C3.5S.pdf',
-    'C3.5SXL':         ARMS_PATH + 'misure_C3.5SXL.pdf',
-    'C4S':             ARMS_PATH + 'misure_C4S.pdf',
-    'C4SXL':           ARMS_PATH + 'misure_C4SXL.pdf',
-    'C4SVS':           ARMS_PATH + 'misure_C4SVS.pdf',
-    'C5.5S':           ARMS_PATH + 'misure_C5.5S.pdf',
-    'C5.5S GLOBAL':    ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
-    'C5 SWAGON':       ARMS_PATH + 'misure_C5SWAGON.pdf',  // se nel dataset è scritto “C5 SWAGON”
-    'C35.5SWAGON':     ARMS_PATH + 'misure_C35.5SWAGON.pdf', // (eventuale ref)
-    'C7S':             ARMS_PATH + 'misure_C7S.pdf',
+    // --- senza basamento / sbalzo libero ---
+    'C3.2S':            ARMS_PATH + 'misure_C3.2S.pdf',
+    'C3.2S CONFORT':    ARMS_PATH + 'misure_C3.2S_CONFORT.pdf',      // nome file come caricato
+    'C3.2S VS PREMIUM': ARMS_PATH + 'misure_C3.2SVS_PREMIUM.pdf',
+    'C3.5S':            ARMS_PATH + 'misure_C3.5S.pdf',
+    'C3.5SXL':          ARMS_PATH + 'misure_C3.5SXL.pdf',
+    'C4S':              ARMS_PATH + 'misure_C4S.pdf',
+    'C4SXL':            ARMS_PATH + 'misure_C4SXL.pdf',
+    'C4SVS':            ARMS_PATH + 'misure_C4SVS.pdf',
+    'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
+    'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
+    'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',           // se nel dataset appare “SWAGON”
+    'C35.5SWAGON':      ARMS_PATH + 'misure_C35.5SWAGON.pdf',        // alias che hai caricato
+    'C7S':              ARMS_PATH + 'misure_C7S.pdf',
 
-    // utilità
-    'MISURE TAMPONI':  ARMS_PATH + 'MISURE TAMPONI.pdf'
+    // --- utilità ---
+    'MISURE TAMPONI':   ARMS_PATH + 'MISURE TAMPONI.pdf'
   };
 
-  // ---------- pagina nel manuale per tavole bracci (fallback) ----------
+  // Pagine nel manuale per le tavole bracci (fallback se un modello non ha PDF dedicato)
   const ARMS_PAGES = {
     'C3.2': 7,
     'C3.2 Comfort': 13,
     'C3.5': 19
-    // gli altri modelli andranno con #search se non specifichi la pagina
+    // altri modelli → fallback #search nel manuale
   };
 
-  // ---------- schede commerciali singole ----------
+  // Schede commerciali per modello (con fallback ai PDF consolidati)
   const SHEET_FILES = {
     withbase: {
       'C3.2':   './docs/scheda_C3.2_con_pedana.pdf',
@@ -84,7 +87,7 @@
     }
   };
 
-  // ---------- pagina nel manuale per schede generali (fallback) ----------
+  // Pagine “schede generali” nel Manuale (fallback)
   const MANUAL_PAGES = {
     'C3.2': 5, 'C3.5': 12, 'C4': 16, 'C4XL': 18, 'C5': 20, 'C5.5': 22, 'C5 WAGON': 25,
     'C3.2S': 32, 'C3.5S': 36, 'C4S': 40, 'C5.5S': 44
@@ -92,8 +95,8 @@
 
   // ------------------ URL builders ------------------
   function buildSheetUrl(modelId, baseKind) {
-    const file = SHEET_FILES[baseKind]?.[modelId];
-    if (file) return file;
+    const f = SHEET_FILES[baseKind]?.[modelId];
+    if (f) return f;
     const pdf = baseKind === 'withbase' ? PDF.withbase : PDF.baseless;
     return `${pdf}#search=${encodeURIComponent(modelId)}`;
   }
@@ -102,9 +105,7 @@
     return p ? `${PDF.manuale}#page=${p}` : `${PDF.manuale}#search=${encodeURIComponent(modelId)}`;
   }
   function buildArmsUrl(modelId) {
-    // per-model file se presente
     if (ARMS_FILES[modelId]) return ARMS_FILES[modelId];
-    // altrimenti pagina nel manuale o ricerca
     const p = ARMS_PAGES[modelId];
     return p ? `${PDF.manuale}#page=${p}` : `${PDF.manuale}#search=${encodeURIComponent(modelId)}`;
   }
@@ -223,7 +224,7 @@
     }
   };
 
-  const textBindings = [
+  const bindings = [
     ['t_title','title'],['t_lang','lang'],['t_save','save'],['t_readme','readme_btn'],['t_install','install'],
     ['t_sec1','sec1'],['t_h','h'],['t_w','w'],['t_conc','conc'],['t_conc_hint','conc_hint'],['t_th','th'],['t_pow','pow'],['t_base','base'],['t_tip','tip'],
     ['t_sec2','sec2'],['t_gvw','gvw'],['t_wb','wb'],['t_use','use'],['t_duty','duty'],['t_calc','calc'],['t_reset','reset'],
@@ -234,18 +235,24 @@
 
   function applyLang(lang) {
     const L = I18N[lang] || I18N.it;
-    textBindings.forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.innerHTML = L[key]; });
-    // pulsante "misure generali"
-    const gen = $('#armsGeneralBtn');
-    if (gen) { gen.textContent = L.arms_general || '📐 Misure generali (tipi veicolo)'; gen.href = PDF.arms_general; gen.target = '_blank'; }
-    // popolamento select veicoli
+    bindings.forEach(([id,key]) => { const el = document.getElementById(id); if (el) el.innerHTML = L[key]; });
+
+    // bottone “Misure generali”
+    const gen = document.getElementById('armsGeneralBtn');
+    if (gen) {
+      gen.textContent = L.arms_general || '📐 Misure generali (tipi veicolo)';
+      gen.href = PDF.arms_general;
+      gen.target = '_blank';
+      gen.rel = 'noopener';
+    }
+
     populateVehicleSelect(lang);
     document.documentElement.lang = lang;
     safeRender();
   }
   $('#langSel')?.addEventListener('change', (e) => applyLang(e.target.value));
 
-  // ------------------ dataset load ------------------
+  // ------------------ dataset ------------------
   let MODELS = [];
   fetch('./models.json')
     .then(r => r.json())
@@ -273,14 +280,14 @@
     lcv:{kg:3200, wb:3300, use:'auto', duty:10}
   };
 
-  // set di compatibilità (id devono combaciare con MODELS[i].id)
+  // Compatibilità (gli id devono corrispondere a MODELS[].id)
   const VEHICLE_COMPAT = {
     city:  ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S'],
     sedan: ['C3.2','C3.2 Comfort','C3.5','C3.2S','C3.5S','C4','C4S','C4XL'],
     suv:   ['C3.5','C4','C4XL','C5','C5.5','C5.5S'],
     mpv:   ['C3.5','C4','C4XL'],
     van:   ['C4XL','C5','C5.5','C5 WAGON'],
-    lcv:   ['C5','C5.5','C5 WAGON','C5.5S'] // include versioni senza basamento idonee ai lunghi
+    lcv:   ['C5','C5.5','C5 WAGON','C5.5S'] // include versioni S idonee a veicoli lunghi
   };
 
   function populateVehicleSelect(lang) {
@@ -288,7 +295,7 @@
     if (!sel) return;
     const cur = sel.value || 'any';
     sel.innerHTML = '';
-    Object.entries(VEHICLE_TYPES).forEach(([k, labels]) => {
+    Object.entries(VEHICLE_TYPES).forEach(([k,labels]) => {
       const opt = document.createElement('option');
       opt.value = k; opt.textContent = labels[lang] || labels.it;
       sel.appendChild(opt);
@@ -299,9 +306,8 @@
   function initVehicleFilter() {
     const sel = $('#vehicleSel');
     if (!sel) return;
-    populateVehicleSelect(langOf());
+    populateVehicleSelect(curLang());
     sel.value = 'any';
-    // auto-fill on change
     sel.addEventListener('change', () => {
       const d = VEHICLE_DEFAULTS[sel.value];
       if (d) {
@@ -312,7 +318,7 @@
       }
       safeRender();
     });
-    const lbl = $('#t_secVeh'); if (lbl) lbl.textContent = (I18N[langOf()]||I18N.it).secVeh;
+    const lbl = $('#t_secVeh'); if (lbl) lbl.textContent = (I18N[curLang()]||I18N.it).secVeh;
   }
 
   // ------------------ core logic ------------------
@@ -320,7 +326,7 @@
   const warnings = $('#warnings');
 
   function issuesFor(m) {
-    const L = I18N[langOf()] || I18N.it;
+    const L = I18N[curLang()] || I18N.it;
     const H = +($('#inpH')?.value || 0);
     const W = +($('#inpW')?.value || 0);
     const T = +($('#inpThickness')?.value || 0);
@@ -370,7 +376,7 @@
   }
 
   function render(list) {
-    const L = I18N[langOf()] || I18N.it;
+    const L = I18N[curLang()] || I18N.it;
     if (!rows) return;
     rows.innerHTML = '';
     list.forEach(m => {
@@ -394,10 +400,10 @@
             <a class="btn" style="padding:2px 8px" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.fond_btn}</a>
           </div>
         </td>
-        <td>${nfmt(m.portata, 'kg')}</td>
-        <td>${nfmt(m.interasse, 'mm')}</td>
-        <td>${nfmt(m.larghezza, 'mm')}</td>
-        <td>${nfmt(m.h_sotto_traversa, 'mm')}</td>
+        <td>${fmt(m.portata, 'kg')}</td>
+        <td>${fmt(m.interasse, 'mm')}</td>
+        <td>${fmt(m.larghezza, 'mm')}</td>
+        <td>${fmt(m.h_sotto_traversa, 'mm')}</td>
         <td>${(m.power || []).join(', ') || '-'}</td>
         <td>${m.anchors ? `${m.anchors.qty}× ${m.anchors.type}<br>${m.anchors.concrete}, ≥ ${m.anchors.thickness_min_mm} mm` : '-'}</td>
         <td>${armsStr}</td>
@@ -409,10 +415,7 @@
     });
   }
 
-  function safeRender() {
-    try { render(makeFiltered().slice(0, 40)); }
-    catch (e) { console.error(e); }
-  }
+  function safeRender() { try { render(makeFiltered().slice(0, 40)); } catch (e) { console.error(e); } }
 
   // ------------------ top actions ------------------
   function selectedIds() { return $$('.pick:checked').map(i => i.dataset.id); }
@@ -453,14 +456,14 @@
   $('#pdfMultiBtn')?.addEventListener('click', () => {
     const ids = selectedIds();
     const list = ids.length ? (MODELS || []).filter(m => ids.includes(m.id)) : makeFiltered().slice(0, 10);
-    const L = I18N[langOf()] || I18N.it;
+    const L = I18N[curLang()] || I18N.it;
     list.forEach((m, i) => setTimeout(() => openSheet(m, L, true), i * 220));
   });
 
   $('#saveBtn')?.addEventListener('click', () => {
     const payload = {
       timestamp: new Date().toISOString(),
-      lang: langOf(),
+      lang: curLang(),
       inputs: {
         altezza_mm: +($('#inpH')?.value || 0) || null,
         larghezza_mm: +($('#inpW')?.value || 0) || null,
@@ -482,7 +485,7 @@
     a.click();
   });
 
-  // ------------------ single sheet window ------------------
+  // ------------------ single sheet / print ------------------
   function openSheet(m, L, silent = false) {
     const css = `body{font:13px system-ui,Segoe UI,Roboto,Arial;margin:22px}
 h1{font-size:18px;margin:0 0 8px 0}
@@ -518,7 +521,7 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
 
   // ------------------ compute / reset ------------------
   function calculate() {
-    const L = I18N[langOf()] || I18N.it;
+    const L = I18N[curLang()] || I18N.it;
     if (warnings) {
       warnings.innerHTML = '';
       const lst = [];
