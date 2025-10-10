@@ -27,6 +27,7 @@
       .row{grid-template-columns:1fr !important}
       nav{gap:6px !important;flex-wrap:wrap}
       .wrap{padding-left:12px;padding-right:12px}
+      /* rimosso table{font-size:14px} — gestito dagli override sotto */
     }
     .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px #0003}
     .card h2{margin:0 0 8px 0;font-size:18px;line-height:1.2}
@@ -40,53 +41,80 @@
     .btn.primary{background:linear-gradient(180deg,#1a285e,#132454);border-color:#243b7a}
     .hint{font-size:12px;color:var(--muted)}
     .tag{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px;margin-right:6px;color:var(--muted)}
-    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
     table{width:100%;border-collapse:collapse;min-width:920px}
     th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:var(--muted);font-weight:600}
     .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-    footer{opacity:.8;color:var(--muted);padding:20px 0;text-align:center;padding-bottom:max(20px, env(safe-area-inset-bottom))}
+    footer{opacity:.8;color:var(--muted);padding:20px 0;padding-bottom:max(20px, env(safe-area-inset-bottom))}
     .callout{border-left:4px solid var(--focus);background:#0f183b;padding:12px 14px;border-radius:12px}
     .chips{display:flex;flex-wrap:wrap;gap:6px}
     .lang{display:flex;gap:8px;align-items:center}
     @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
 
+    /* ==== Tipografia fluida & spazi (override) ==== */
     html { font-size: clamp(14px, 0.9vw + 12px, 16px); }
     body { font-size: 0.95rem; line-height: 1.5; }
+
     h1 { font-size: clamp(18px, 1.2vw + 16px, 26px); }
     .card h2 { font-size: clamp(16px, 0.8vw + 14px, 20px); }
 
-    /* === Modale === */
-    #legalModal {
-      display:none;
-      position:fixed;
-      top:0;left:0;width:100%;height:100%;
-      background:rgba(0,0,0,0.75);
-      backdrop-filter:blur(5px);
-      z-index:999;
-      align-items:center;justify-content:center;
+    .btn {
+      font-size: clamp(13px, 0.4vw + 12px, 15px);
+      padding: clamp(8px, 0.6vw + 6px, 12px) clamp(10px, 0.8vw + 8px, 14px);
+      border-radius: 12px;
     }
-    #legalModal .modal-content {
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:24px;
-      max-width:650px;
-      max-height:80vh;
-      overflow-y:auto;
-      color:var(--ink);
-      box-shadow:0 0 25px #0006;
+    .btn.primary { border-width: 1px; }
+
+    label { font-size: clamp(13px, 0.2vw + 12px, 14px); }
+    .hint, .tag { font-size: clamp(11px, 0.2vw + 10px, 12px); }
+    .tag { padding: 2px 8px; }
+
+    input, select {
+      font-size: clamp(14px, 0.3vw + 12px, 15px);
+      padding: clamp(10px, 0.6vw + 8px, 12px);
+      border-radius: 12px;
     }
-    #legalModal h2 {margin-top:0;font-size:20px;color:var(--focus)}
-    #legalModal button.close {
-      background:none;border:none;color:var(--muted);
-      font-size:20px;cursor:pointer;float:right;
+
+    .grid { gap: clamp(10px, 1.2vw, 16px); }
+    .row  { gap: clamp(8px, 1vw, 12px); }
+
+    .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch }
+    table { min-width: 880px; }
+    th, td {
+      padding: clamp(8px, 0.8vw, 12px);
+      line-height: 1.35;
     }
-    #legalModal a {color:var(--focus);text-decoration:none}
-    #legalModal a:hover{text-decoration:underline}
+    th { font-size: clamp(12px, 0.3vw + 11px, 13.5px); }
+    td { font-size: clamp(13px, 0.3vw + 12px, 15px); }
+    td .btn { padding: 2px 8px; font-size: 12px; }
+
+    td small, .hint { line-height: 1.25 }
+
+    @media (max-width: 900px) {
+      .wrap { padding-left: 12px; padding-right: 12px; }
+      header .wrap { gap: 8px; }
+      nav { gap: 6px; flex-wrap: wrap; }
+    }
+
+    @media (max-width: 680px) {
+      .row { grid-template-columns: 1fr !important; }
+      h1 { font-size: clamp(18px, 5vw, 22px); }
+      .card .inner { padding: 12px; }
+      table { min-width: 760px; }
+      th, td { padding: 8px; }
+      .chips { gap: 6px; }
+      .btn { padding: 8px 10px; border-radius: 10px; }
+      .tag { padding: 2px 7px; }
+    }
+
+    @media (min-width: 1300px) {
+      .wrap { max-width: 1200px; }
+      table { min-width: 960px; }
+      th, td { padding: 12px 14px; }
+    }
   </style>
 </head>
-
 <body>
   <header>
     <div class="wrap" style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">
@@ -102,69 +130,166 @@
             <option value="pt">Português</option>
           </select>
         </div>
-        <button class="btn" id="shareBtn" type="button">🔗 <span id="t_share">Condividi</span></button>
-        <button class="btn" id="csvBtn" type="button">🧾 <span id="t_csv">CSV</span></button>
-        <button class="btn" id="pdfMultiBtn" type="button">🖨️ <span id="t_pdfmulti">PDF multiplo</span></button>
-        <button class="btn" id="saveBtn" type="button">💾 <span id="t_save">Salva</span></button>
-        <a class="btn" href="./README.html" target="_blank" rel="noopener">📖 <span id="t_readme">Leggimi</span></a>
-        <button class="btn" id="installBtn" type="button" hidden>➕ <span id="t_install">Installa</span></button>
+        <button class="btn" id="shareBtn" type="button" aria-label="Condividi configurazione" title="Condividi scheda">🔗 <span id="t_share">Condividi</span></button>
+        <button class="btn" id="csvBtn" type="button" aria-label="Esporta CSV" title="Esporta CSV">🧾 <span id="t_csv">CSV</span></button>
+        <button class="btn" id="pdfMultiBtn" type="button" aria-label="Apri più PDF" title="PDF multiplo">🖨️ <span id="t_pdfmulti">PDF multiplo</span></button>
+        <button class="btn" id="saveBtn" type="button" aria-label="Esporta configurazione" title="Esporta configurazione">💾 <span id="t_save">Salva</span></button>
+        <a class="btn" href="./README.html" target="_blank" rel="noopener" aria-label="Leggimi">📖 <span id="t_readme">Leggimi</span></a>
+        <button class="btn" id="installBtn" type="button" hidden aria-label="Installa app">➕ <span id="t_install">Installa</span></button>
       </nav>
     </div>
   </header>
 
   <main class="wrap grid" id="app">
-    <!-- (contenuto invariato come nel tuo attuale index) -->
+    <!-- 1) Vincoli officina -->
+    <section class="card">
+      <div class="inner">
+        <h2 id="t_sec1">1) Vincoli dell’officina</h2>
+        <div class="row">
+          <div>
+            <label id="t_h" for="inpH">Altezza utile soffitto (mm)</label>
+            <input type="number" id="inpH" placeholder="es. 4000" min="2500" step="10">
+          </div>
+          <div>
+            <label id="t_w" for="inpW">Larghezza baia disponibile (mm)</label>
+            <input type="number" id="inpW" placeholder="es. 3500" min="3000" step="10">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label id="t_conc" for="inpConcrete">Qualità calcestruzzo</label>
+            <select id="inpConcrete">
+              <option value="C20/25">C20/25 (standard EN)</option>
+              <option value="C25/30">C25/30</option>
+              <option value="unknown">Sconosciuta</option>
+            </select>
+            <div class="hint" id="t_conc_hint">Per i modelli 3.2–5.5 t sono richiesti ancoraggi su calcestruzzo C20/25.</div>
+          </div>
+          <div>
+            <label id="t_th" for="inpThickness">Spessore soletta (mm)</label>
+            <input type="number" id="inpThickness" placeholder="≥ 170 consigliato" min="100" step="1">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label id="t_pow" for="inpPower">Alimentazione disponibile</label>
+            <select id="inpPower">
+              <option value="400/3~">Trifase 400 V</option>
+              <option value="230/3~">Trifase 230 V</option>
+              <option value="230/1~">Monofase 230 V</option>
+            </select>
+          </div>
+          <div>
+            <label id="t_base" for="inpBase">Tipo colonna</label>
+            <select id="inpBase">
+              <option value="withbase">Con basamento/pedana</option>
+              <option value="baseless">Senza basamento (sbalzo libero)</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:10px" class="callout" id="t_tip">
+          Suggerimento: imposta <em>larghezza baia ≥ 3350 mm</em> per le serie C3.2–C4; per veicoli lunghi valuta le versioni XL / WAGON.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2) Veicolo -->
+    <section class="card">
+      <div class="inner">
+        <h2 id="t_sec2">2) Veicolo tipo da sollevare</h2>
+
+        <div class="row">
+          <div>
+            <label id="t_secVeh" for="vehicleSel">Tipo di veicolo</label>
+            <select id="vehicleSel"></select>
+          </div>
+          <div>
+            <label id="t_gvw" for="inpGVW">Peso veicolo (kg)</label>
+            <input type="number" id="inpGVW" placeholder="es. 2200" min="600" step="10">
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label id="t_wb" for="inpWB">Passo (mm) / ingombro</label>
+            <input type="number" id="inpWB" placeholder="es. 2900" min="1800" step="10">
+          </div>
+          <div>
+            <label id="t_use" for="inpUse">Uso</label>
+            <select id="inpUse">
+              <option value="auto">Auto / SUV</option>
+              <option value="van">Van / Furgoni</option>
+              <option value="mpv">MPV / crossover</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label id="t_duty" for="inpDuty">Frequenza cicli/h</label>
+            <select id="inpDuty">
+              <option value="6">Intermittente (≈6 mov/h)</option>
+              <option value="10">Intensivo (≥10 mov/h)</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+
+        <div style="margin-top:12px">
+          <button class="btn primary" id="calcBtn" type="button">⚙️ <span id="t_calc">Calcola suggerimenti</span></button>
+          <button class="btn" id="resetBtn" type="button">↺ <span id="t_reset">Reset</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3) Risultati -->
+    <section class="card" style="grid-column:1/-1">
+      <div class="inner">
+        <h2 id="t_sec3">3) Risultati e modelli consigliati</h2>
+        <div id="warnings" class="chips" aria-live="polite"></div>
+        <div class="table-wrap">
+          <table id="tbl" aria-label="Risultati e modelli consigliati">
+            <thead>
+              <tr>
+                <th id="t_th_model">Modello</th>
+                <th id="t_th_cap">Portata</th>
+                <th id="t_th_inter">Interasse<br>(mm)</th>
+                <th id="t_th_width">Larghezza tot.<br>(mm)</th>
+                <th id="t_th_height">Altezza utile<br>sotto traversa (mm)</th>
+                <th id="t_th_power">Alimentazione</th>
+                <th id="t_th_anchor">Anc. / Spessore<br>soletta</th>
+                <th id="t_th_arms">Bracci</th>
+                <th id="t_th_notes">Note</th>
+                <th>Sel.</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="hint" style="margin-top:8px">
+          I dati sono indicativi e non sostituiscono il manuale e la verifica del cantiere. Consulta sempre le istruzioni ufficiali CASCOS.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4) Documenti -->
+    <section class="card">
+      <div class="inner">
+        <h2>4) Documenti utili</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <a class="btn" href="./docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">🏗️ Schema fondazioni</a>
+          <a class="btn" href="./docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">📘 Manuale tecnico</a>
+          <a class="btn" href="./docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
+          <a class="btn" href="./docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
+          <a class="btn" id="armsGeneralBtn" href="./ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="wrap">
-    <div>
-      © CASCOS Configuratore — PWA open-source. |
-      <a href="#" id="openLegalModal" style="color:var(--focus)">Informazioni legali</a> ·
-      <a href="./LICENSE.html" target="_blank" rel="noopener" style="color:var(--focus)">Licenza completa</a>
-    </div>
-  </footer>
-
-  <!-- === Modale Informazioni Legali === -->
-  <div id="legalModal">
-    <div class="modal-content">
-      <button class="close" id="closeLegal">&times;</button>
-      <h2>Informazioni legali</h2>
-      <p>
-        Questa applicazione è destinata esclusivamente alla preventivazione commerciale e alla
-        formazione tecnica. I marchi citati, incluso <strong>CASCOS</strong>, appartengono ai rispettivi proprietari.
-      </p>
-      <p>
-        Il codice sorgente, l’interfaccia e la logica funzionale dell’app sono proprietà intellettuale
-        di <strong>Alessandro Pezzali</strong> e sono protetti dalle normative vigenti in materia di diritto d’autore e tutela digitale.
-      </p>
-      <p>
-        È vietata la riproduzione, distribuzione o modifica, anche parziale, senza autorizzazione scritta dell’autore.
-        L’app integra sistemi di tracciamento documentale per la protezione da divulgazioni non autorizzate.
-      </p>
-      <p>
-        L’utilizzo è consentito per fini di presentazione e preventivazione commerciale nel rispetto dei diritti dei marchi
-        di terze parti e delle normative europee (Dir. 2001/29/CE e s.m.i.).
-      </p>
-      <p>
-        Per maggiori dettagli consulta la <a href="./LICENSE.html" target="_blank">Licenza completa</a>.
-      </p>
-    </div>
-  </div>
+  <footer class="wrap"><div>© Cascos_Configuratore — PWA open-source.</div></footer>
 
   <script src="./app.js" defer></script>
-  <script>
-    const modal = document.getElementById('legalModal');
-    document.getElementById('openLegalModal').addEventListener('click', e => {
-      e.preventDefault(); modal.style.display = 'flex';
-    });
-    document.getElementById('closeLegal').addEventListener('click', () => {
-      modal.style.display = 'none';
-    });
-    window.addEventListener('click', e => {
-      if (e.target === modal) modal.style.display = 'none';
-    });
-  </script>
-
   <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
 </body>
 </html>
