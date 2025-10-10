@@ -555,16 +555,59 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
     calculate();
   });
 
-  // ------------------ PWA ------------------
-  let deferredPrompt;
+ // ------------------ PWA (install + fallback iOS) ------------------
+(function setupPWA() {
+  const installBtn = document.getElementById('installBtn');
+  let deferredPrompt = null;
+
+  const showBtn = () => { if (installBtn) installBtn.hidden = false; };
+  const hideBtn = () => { if (installBtn) installBtn.hidden = true; };
+
+  // 1) Nascondi se già installata
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+  if (isStandalone) hideBtn();
+
+  window.addEventListener('appinstalled', () => hideBtn());
+
+  // 2) Flusso standard (Chrome/Edge/Android)
   window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault(); deferredPrompt = e;
-    const b = $('#installBtn');
-    if (b) {
-      b.hidden = false;
-      b.onclick = () => { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; b.hidden = true; } };
+    e.preventDefault();                 // cattura l’evento
+    deferredPrompt = e;
+    showBtn();
+    if (installBtn) {
+      installBtn.onclick = async () => {
+        try {
+          await deferredPrompt.prompt();                // mostra il prompt
+          const choice = await deferredPrompt.userChoice;
+          // se l’utente conferma, possiamo nascondere il bottone
+          if (choice && choice.outcome === 'accepted') hideBtn();
+        } catch (_) { /* no-op */ }
+        deferredPrompt = null;
+      };
     }
   });
-  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 
+  // 3) Fallback se l’evento non arriva (iOS Safari & co.)
+  setTimeout(() => {
+    if (!deferredPrompt && installBtn && installBtn.hidden) {
+      showBtn();
+      installBtn.onclick = () => {
+        const ua = navigator.userAgent || '';
+        if (/iPhone|iPad|iPod/i.test(ua)) {
+          alert('iPhone/iPad:\n1) Tocca • Condividi\n2) “Aggiungi alla schermata Home”\n3) Conferma Nome → Aggiungi');
+        } else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) {
+          alert('Safari (macOS): File → Aggiungi al Dock.');
+        } else {
+          alert('Se il prompt non compare:\n• Usa Chrome/Edge\n• Assicurati HTTPS attivo\n• Manifest e Service Worker devono essere validi.');
+        }
+      };
+    }
+  }, 2500);
+
+  // 4) Registrazione Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
 })();
