@@ -3,101 +3,28 @@
   "short_name": "CASCOS Config",
   "id": "./",
   "scope": "./",
-  "start_url": "./?src=pwa",
+  "start_url": "./index.html?src=pwa",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0b1022",
   "theme_color": "#0b1022",
-  "description": "Configuratore tecnico-commerciale per sollevatori a 2 colonne CASCOS — Preventivazione, schede e documenti PDF, utilizzabile anche offline come PWA.",
+  "description": "Configuratore tecnico-commerciale per sollevatori a 2 colonne CASCOS. Preventivazione, schede e PDF. Utilizzabile anche offline.",
   "categories": ["business", "productivity", "tools"],
   "dir": "ltr",
   "lang": "it",
   "icons": [
-    {
-      "src": "./icons/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "./icons/maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "./icons/screenshot-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Schermata principale del configuratore"
-    },
-    {
-      "src": "./icons/screenshot-2.png",
-      "sizes": "720x1280",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Visualizzazione mobile del configuratore"
-    }
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
     {
       "name": "Nuova configurazione",
-      "short_name": "Nuova config",
-      "description": "Crea una nuova configurazione CASCOS",
-      "url": "./?new=1",
-      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Apri documenti PDF",
-      "short_name": "PDF",
-      "description": "Accedi rapidamente ai documenti tecnici CASCOS",
-      "url": "./docs/",
-      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+      "short_name": "Nuova",
+      "url": "./index.html?new=1",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
-  "related_applications": [],
   "prefer_related_applications": false
 }
