@@ -267,12 +267,50 @@
   $('#langSel')?.addEventListener('change', (e) => applyLang(e.target.value));
 
   // ------------------ dataset ------------------
-  let MODELS = [];
-  fetch('./models.json')
-    .then(r => r.json())
-    .then(d => { MODELS = d || []; initVehicleFilter(); applyLang('it'); })
-    .catch(() => { MODELS = []; initVehicleFilter(); applyLang('it'); });
+let MODELS = [];
 
+// Usa eventuale URL impostato da index.html e aggiungi un anti-cache locale
+function withNoStore(u) {
+  try {
+    const url = new URL(u, location.href);
+    if (!url.searchParams.has('v') && !url.searchParams.has('t')) {
+      url.searchParams.set('t', Date.now());
+    }
+    return url.toString();
+  } catch { return u; }
+}
+const DATA_URL = withNoStore(window.MODELS_URL || './models.json');
+
+fetch(DATA_URL, { cache: 'no-store' })
+  .then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} su ${DATA_URL}`);
+    const ct = r.headers.get('content-type') || '';
+    if (!/application\/json|text\/json/i.test(ct)) {
+      console.warn('Attenzione: content-type non JSON per models.json:', ct);
+    }
+    return r.json();
+  })
+  .then(d => {
+    if (!Array.isArray(d)) throw new Error('models.json non è un array');
+    MODELS = d;
+    initVehicleFilter();
+    applyLang(document.documentElement.lang || 'it');
+    calculate(); // primo render
+  })
+  .catch(err => {
+    console.error('Errore nel caricamento di models.json:', err);
+    MODELS = [];
+    initVehicleFilter();
+    applyLang(document.documentElement.lang || 'it');
+
+    const warnings = document.getElementById('warnings');
+    if (warnings) {
+      const s = document.createElement('span');
+      s.className = 'tag bad';
+      s.textContent = 'Impossibile caricare i modelli (rete/cache/MIME).';
+      warnings.appendChild(s);
+    }
+  });
   // ------------------ vehicle types / defaults / compat ------------------
   const VEHICLE_TYPES = {
     any:{ it:'Qualsiasi', en:'Any', es:'Cualquiera', fr:'Toutes', pt:'Qualquer' },
