@@ -57,6 +57,7 @@
     'C4S':              ARMS_PATH + 'misure_C4S.pdf',
     'C4SXL':            ARMS_PATH + 'misure_C4SXL.pdf',
     'C4SVS':            ARMS_PATH + 'misure_C4SVS.pdf',
+    'C5S':              ARMS_PATH + 'misure_C5S.pdf',
     'C5.5S':            ARMS_PATH + 'misure_C5.5S.pdf',
     'C5.5S GLOBAL':     ARMS_PATH + 'misure_C5.5SGLOBAL.pdf',
     'C5 SWAGON':        ARMS_PATH + 'misure_C5SWAGON.pdf',     // alias se nel dataset
