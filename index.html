@@ -19,7 +19,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
-  <!-- Preload dataset -->
   <link rel="preload" as="fetch" href="models.json?v=20251010" crossorigin="anonymous">
 
   <style>
@@ -57,52 +56,28 @@
     .callout{border-left:4px solid var(--focus);background:#0f183b;padding:12px 14px;border-radius:12px}
     .chips{display:flex;flex-wrap:wrap;gap:6px}
     .lang{display:flex;gap:8px;align-items:center}
-
-    /* banner scompare quando vuoto */
     #errBanner:empty { display:none; }
 
-    @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
-    html { font-size: clamp(14px, 0.9vw + 12px, 16px); }
-    body { font-size: 0.95rem; line-height: 1.5; }
-    h1 { font-size: clamp(18px, 1.2vw + 16px, 26px); }
-    .card h2 { font-size: clamp(16px, 0.8vw + 14px, 20px); }
-    .btn { font-size: clamp(13px, 0.4vw + 12px, 15px); padding: clamp(8px, 0.6vw + 6px, 12px) clamp(10px, 0.8vw + 8px, 14px); border-radius: 12px; }
-    .btn.primary { border-width: 1px; }
-    label { font-size: clamp(13px, 0.2vw + 12px, 14px); }
-    .hint, .tag { font-size: clamp(11px, 0.2vw + 10px, 12px); }
-    .tag { padding: 2px 8px; }
-    input, select { font-size: clamp(14px, 0.3vw + 12px, 15px); padding: clamp(10px, 0.6vw + 8px, 12px); border-radius: 12px; }
-    .grid { gap: clamp(10px, 1.2vw, 16px); }
-    .row  { gap: clamp(8px, 1vw, 12px); }
-    .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch }
-    table { min-width: 880px; }
-    th, td { padding: clamp(8px, 0.8vw, 12px); line-height: 1.35; }
-    th { font-size: clamp(12px, 0.3vw + 11px, 13.5px); }
-    td { font-size: clamp(13px, 0.3vw + 12px, 15px); }
-    td .btn { padding: 2px 8px; font-size: 12px; }
-    td small, .hint { line-height: 1.25 }
-    @media (max-width: 900px) { .wrap { padding-left: 12px; padding-right: 12px; } header .wrap { gap: 8px; } nav { gap: 6px; flex-wrap: wrap; } }
-    @media (max-width: 680px) { .row { grid-template-columns: 1fr !important; } h1 { font-size: clamp(18px, 5vw, 22px); } .card .inner { padding: 12px; } table { min-width: 760px; } th, td { padding: 8px; } .chips { gap: 6px; } .btn { padding: 8px 10px; border-radius: 10px; } .tag { padding: 2px 7px; } }
+    /* Floating Home (solo PWA) */
+    .home-fab{
+      position:fixed;right:16px;bottom:16px;z-index:60;
+      display:none;align-items:center;gap:8px;
+      background:linear-gradient(180deg,#1a285e,#132454);
+      color:var(--ink);border:1px solid #243b7a;border-radius:999px;
+      padding:10px 14px;text-decoration:none;box-shadow:0 8px 24px #0006
+    }
+    .home-fab.show{display:inline-flex}
+    @media (max-width:680px){ .home-fab{right:12px;bottom:12px} }
 
-    /* ===== Modal legale ===== */
-    .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px env(safe-area-inset-right) 16px env(safe-area-inset-left);z-index:50}
-    .modal-backdrop[aria-hidden="false"]{display:flex}
-    .modal{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:760px;width:100%;box-shadow:0 10px 40px #0007}
-    .modal header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:transparent}
-    .modal header h3{margin:0;font-size:18px}
-    .modal .body{padding:14px 16px}
-    .modal .actions{display:flex;justify-content:flex-end;gap:8px;padding:14px 16px;border-top:1px solid var(--line)}
-    .modal .close{background:#0e193f;border:1px solid var(--line);padding:8px 10px;border-radius:10px;color:var(--ink);cursor:pointer}
-    .legal[hidden]{display:none !important}
+    @media print { header, .lang, .callout, .home-fab { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
   </style>
 
   <!-- Bootstrap dataset & pulizia cache/SW (PRIMA di app.js) -->
   <script>
     (function () {
-      // Versione dataset (busta cache)
       window.MODELS_URL = 'models.json?v=20251010';
 
-      // Force update SW e pulizia cache vecchie
+      // Aggiorna SW e ripulisci cache vecchie
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations()
           .then(rs => rs.forEach(r => r.update && r.update()))
@@ -110,19 +85,16 @@
       }
       if (window.caches) {
         caches.keys()
-          .then(keys => Promise.all(keys
-            .filter(k => /^cascos-config-/.test(k) && k !== 'cascos-config-v5')
-            .map(k => caches.delete(k))))
+          .then(keys => Promise.all(keys.filter(k => /^cascos-config-/.test(k) && k !== 'cascos-config-v5').map(k => caches.delete(k))))
           .catch(()=>{});
       }
 
-      // Banner errori JS (filtriamo rumore/risorse)
+      // Banner errori JS (filtra rumore)
       function showErr(msg){
-        const b=document.getElementById('errBanner');
-        if(b && !b.textContent) b.textContent = msg;
+        const b=document.getElementById('errBanner'); if(b && !b.textContent) b.textContent = msg;
       }
       window.addEventListener('error', (e) => {
-        if (e.target && (e.target.src || e.target.href)) return; // errori di risorsa ignorati
+        if (e.target && (e.target.src || e.target.href)) return;
         if (/ResizeObserver/.test(e?.message||'')) return;
         showErr('Errore di runtime: ' + (e?.message || 'sconosciuto'));
       });
@@ -137,6 +109,7 @@
     <div class="wrap" style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">
       <h1 id="t_title">🔧 CASCOS — Configuratore Sollevatori 2 Colonne</h1>
       <nav style="display:flex;gap:8px;align-items:center">
+        <a class="btn" href="./index.html">🏠 Home</a>
         <div class="lang">
           <label for="langSel" class="hint" id="t_lang">Lingua</label>
           <select id="langSel" aria-label="Seleziona lingua">
@@ -249,7 +222,7 @@
         <div class="row">
           <div>
             <label id="t_duty" for="inpDuty">Frequenza cicli/h</label>
-            <select id="t_duty" id="inpDuty">
+            <select id="inpDuty">
               <option value="6">Intermittente (≈6 mov/h)</option>
               <option value="10">Intensivo (≥10 mov/h)</option>
             </select>
@@ -299,11 +272,11 @@
       <div class="inner">
         <h2>4) Documenti utili</h2>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <a class="btn" href="docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">🏗️ Schema fondazioni</a>
-          <a class="btn" href="docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">📘 Manuale tecnico</a>
-          <a class="btn" href="docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
-          <a class="btn" href="docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
-          <a class="btn" id="armsGeneralBtn" href="ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
+          <a class="btn doclink" href="docs/fondazioni_cascos_c4c.pdf" target="_blank" rel="noopener">🏗️ Schema fondazioni</a>
+          <a class="btn doclink" href="docs/manuale_tecnico_presentazione.pdf" target="_blank" rel="noopener">📘 Manuale tecnico</a>
+          <a class="btn doclink" href="docs/scheda_con_pedana.pdf" target="_blank" rel="noopener">📄 Versioni con pedana</a>
+          <a class="btn doclink" href="docs/scheda_senza_pedana_2022.pdf" target="_blank" rel="noopener">📄 Versioni senza pedana</a>
+          <a class="btn doclink" id="armsGeneralBtn" href="ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf" target="_blank" rel="noopener">📐 Misure generali (tipi veicolo)</a>
           <a class="btn" href="LICENSE.html#it" target="_blank" rel="noopener">📜 Licenza (completa)</a>
         </div>
       </div>
@@ -311,6 +284,9 @@
   </main>
 
   <footer class="wrap"><div>© Cascos_Configuratore — PWA open-source.</div></footer>
+
+  <!-- FAB Home (compare solo in PWA standalone) -->
+  <a href="./index.html" class="home-fab" id="homeFab">🏠 Home</a>
 
   <!-- Modal “Informazioni legali” -->
   <div class="modal-backdrop" id="legalModal" aria-hidden="true">
@@ -352,7 +328,7 @@
     </div>
   </div>
 
-  <!-- Script modale legal + protezione click sulle azioni tabella -->
+  <!-- Script modale + ritorno Home + gestione link PDF/esterni in PWA -->
   <script>
     (function(){
       const modal = document.getElementById('legalModal');
@@ -372,9 +348,31 @@
       langSel && langSel.addEventListener('change', syncLegalLang);
 
       const rows = document.getElementById('rows');
-      rows && rows.addEventListener('click', (e) => {
-        if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); }
-      });
+      rows && rows.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); } });
+
+      // ---- HOME FAB (solo quando l'app è installata) ----
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const homeFab = document.getElementById('homeFab');
+      if (isStandalone && homeFab) homeFab.classList.add('show');
+
+      // ---- iOS PWA: apri PDF ed esterni fuori dall'app, così puoi tornare con "Fine" ----
+      function isPdf(href){ return href && /\.pdf($|[?#])/i.test(href); }
+      function isExternal(url){
+        try{ const u = new URL(url, location.href); return u.origin !== location.origin; }catch{ return false; }
+      }
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest && e.target.closest('a');
+        if (!a) return;
+        const href = a.getAttribute('href') || '';
+        if (!href) return;
+        if (!isStandalone) return; // in browser normale non tocchiamo nulla
+
+        // Per PDF o link esterni: apri in una vista separata
+        if (isPdf(href) || isExternal(href)) {
+          e.preventDefault();
+          try { window.open(new URL(href, location.href).toString(), '_blank'); } catch { location.href = href; }
+        }
+      }, { capture:true });
     })();
   </script>
 
