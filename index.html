@@ -57,7 +57,6 @@
     .chips{display:flex;flex-wrap:wrap;gap:6px}
     .lang{display:flex;gap:8px;align-items:center}
 
-    /* banner scompare quando vuoto */
     #errBanner:empty { display:none; }
 
     @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
@@ -110,12 +109,11 @@
           .catch(()=>{});
       }
 
-      // Banner errori JS — filtriamo rumore/risorse
       function showErr(msg){
         const b=document.getElementById('errBanner'); if(b && !b.textContent) b.textContent = msg;
       }
       window.addEventListener('error', (e) => {
-        if (e.target && (e.target.src || e.target.href)) return; // errori di risorsa (icone/css) ignorati
+        if (e.target && (e.target.src || e.target.href)) return;
         if (/ResizeObserver/.test(e?.message||'')) return;
         showErr('Errore di runtime: ' + (e?.message || 'sconosciuto'));
       });
@@ -365,6 +363,26 @@
 
       const rows = document.getElementById('rows');
       rows && rows.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); } });
+    })();
+  </script>
+
+  <!-- iPhone/PWA: apri i PDF nel viewer interno con pulsante “Torna al configuratore” -->
+  <script>
+    (function(){
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      function isPdf(href){ return href && /\.pdf($|[?#])/i.test(href); }
+      if (isStandalone) {
+        document.addEventListener('click', (e) => {
+          const a = e.target.closest && e.target.closest('a');
+          if (!a) return;
+          const href = a.getAttribute('href');
+          if (isPdf(href)) {
+            e.preventDefault();
+            const abs = new URL(href, location.href).toString();
+            location.href = './viewer.html?u=' + encodeURIComponent(abs);
+          }
+        }, { capture:true });
+      }
     })();
   </script>
 
