@@ -19,6 +19,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
+  <!-- Preload dataset -->
   <link rel="preload" as="fetch" href="models.json?v=20251010" crossorigin="anonymous">
 
   <style>
@@ -57,6 +58,7 @@
     .chips{display:flex;flex-wrap:wrap;gap:6px}
     .lang{display:flex;gap:8px;align-items:center}
 
+    /* banner scompare quando vuoto */
     #errBanner:empty { display:none; }
 
     @media print { header, .lang, .callout { display:none } body { background:white; color:black } .card { box-shadow:none; border-color:#ddd } }
@@ -81,7 +83,6 @@
     td small, .hint { line-height: 1.25 }
     @media (max-width: 900px) { .wrap { padding-left: 12px; padding-right: 12px; } header .wrap { gap: 8px; } nav { gap: 6px; flex-wrap: wrap; } }
     @media (max-width: 680px) { .row { grid-template-columns: 1fr !important; } h1 { font-size: clamp(18px, 5vw, 22px); } .card .inner { padding: 12px; } table { min-width: 760px; } th, td { padding: 8px; } .chips { gap: 6px; } .btn { padding: 8px 10px; border-radius: 10px; } .tag { padding: 2px 7px; } }
-    @media (min-width: 1300px) { .wrap { max-width: 1200px; } table { min-width: 960px; } th, td { padding: 12px 14px; } }
 
     /* ===== Modal legale ===== */
     .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px env(safe-area-inset-right) 16px env(safe-area-inset-left);z-index:50}
@@ -98,22 +99,30 @@
   <!-- Bootstrap dataset & pulizia cache/SW (PRIMA di app.js) -->
   <script>
     (function () {
+      // Versione dataset (busta cache)
       window.MODELS_URL = 'models.json?v=20251010';
 
+      // Force update SW e pulizia cache vecchie
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.update && r.update())).catch(()=>{});
+        navigator.serviceWorker.getRegistrations()
+          .then(rs => rs.forEach(r => r.update && r.update()))
+          .catch(()=>{});
       }
       if (window.caches) {
         caches.keys()
-          .then(keys => Promise.all(keys.filter(k => /^cascos-config-/.test(k) && k !== 'cascos-config-v5').map(k => caches.delete(k))))
+          .then(keys => Promise.all(keys
+            .filter(k => /^cascos-config-/.test(k) && k !== 'cascos-config-v5')
+            .map(k => caches.delete(k))))
           .catch(()=>{});
       }
 
+      // Banner errori JS (filtriamo rumore/risorse)
       function showErr(msg){
-        const b=document.getElementById('errBanner'); if(b && !b.textContent) b.textContent = msg;
+        const b=document.getElementById('errBanner');
+        if(b && !b.textContent) b.textContent = msg;
       }
       window.addEventListener('error', (e) => {
-        if (e.target && (e.target.src || e.target.href)) return;
+        if (e.target && (e.target.src || e.target.href)) return; // errori di risorsa ignorati
         if (/ResizeObserver/.test(e?.message||'')) return;
         showErr('Errore di runtime: ' + (e?.message || 'sconosciuto'));
       });
@@ -240,7 +249,7 @@
         <div class="row">
           <div>
             <label id="t_duty" for="inpDuty">Frequenza cicli/h</label>
-            <select id="inpDuty">
+            <select id="t_duty" id="inpDuty">
               <option value="6">Intermittente (≈6 mov/h)</option>
               <option value="10">Intensivo (≥10 mov/h)</option>
             </select>
@@ -343,6 +352,7 @@
     </div>
   </div>
 
+  <!-- Script modale legal + protezione click sulle azioni tabella -->
   <script>
     (function(){
       const modal = document.getElementById('legalModal');
@@ -362,30 +372,13 @@
       langSel && langSel.addEventListener('change', syncLegalLang);
 
       const rows = document.getElementById('rows');
-      rows && rows.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); } });
+      rows && rows.addEventListener('click', (e) => {
+        if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); }
+      });
     })();
   </script>
 
-  <!-- iPhone/PWA: apri i PDF nel viewer interno con pulsante “Torna al configuratore” -->
-  <script>
-    (function(){
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-      function isPdf(href){ return href && /\.pdf($|[?#])/i.test(href); }
-      if (isStandalone) {
-        document.addEventListener('click', (e) => {
-          const a = e.target.closest && e.target.closest('a');
-          if (!a) return;
-          const href = a.getAttribute('href');
-          if (isPdf(href)) {
-            e.preventDefault();
-            const abs = new URL(href, location.href).toString();
-            location.href = './viewer.html?u=' + encodeURIComponent(abs);
-          }
-        }, { capture:true });
-      }
-    })();
-  </script>
-
+  <!-- App principale -->
   <script src="app.js" defer></script>
   <noscript><div class="wrap" style="color:#fff">Attiva JavaScript per usare il configuratore.</div></noscript>
 </body>
