@@ -222,7 +222,8 @@
         <div class="row">
           <div>
             <label id="t_duty" for="inpDuty">Frequenza cicli/h</label>
-            <select id="t_duty" id="inpDuty">
+            <!-- fix: rimosso id duplicato -->
+            <select id="inpDuty">
               <option value="6">Intermittente (≈6 mov/h)</option>
               <option value="10">Intensivo (≥10 mov/h)</option>
             </select>
@@ -328,7 +329,7 @@
     </div>
   </div>
 
-  <!-- Script modale + FAB + gestione link PDF/esterni in PWA -->
+  <!-- Script modale + FAB + routing PDF/esterni -->
   <script>
     (function(){
       const modal = document.getElementById('legalModal');
@@ -360,8 +361,9 @@
       const homeFab = document.getElementById('homeFab');
       if (isStandalone && homeFab) homeFab.classList.add('show');
 
-      // --- Routing PDF su viewer.html (così hai sempre il bottone "Torna") ---
+      // --- Routing PDF su viewer.html (così hai SEMPRE il bottone "Torna") ---
       function isPdf(href){ return href && /\.pdf($|[?#])/i.test(href); }
+      function absUrl(href){ try { return new URL(href, location.href).toString(); } catch { return href; } }
       function isExternal(url){
         try{ const u = new URL(url, location.href); return u.origin !== location.origin; }catch{ return false; }
       }
@@ -372,20 +374,17 @@
         const href = a.getAttribute('href') || '';
         if (!href) return;
 
-        if (!isStandalone) return; // in browser normale non tocchiamo nulla
-
-        // 1) PDF: instrada SEMPRE al viewer interno con topbar
+        // 1) PDF: instrada SEMPRE al viewer interno con topbar (browser e PWA)
         if (isPdf(href)) {
           e.preventDefault();
-          const abs = new URL(href, location.href).toString();
-          location.href = './viewer.html?u=' + encodeURIComponent(abs);
+          location.href = './viewer.html?u=' + encodeURIComponent(absUrl(href));
           return;
         }
 
-        // 2) Link esterni: apri fuori dall'app
-        if (isExternal(href)) {
+        // 2) Link esterni: in PWA apri fuori dall'app
+        if (isStandalone && isExternal(href)) {
           e.preventDefault();
-          try { window.open(new URL(href, location.href).toString(), '_blank'); } catch { location.href = href; }
+          try { window.open(absUrl(href), '_blank'); } catch { location.href = href; }
         }
       }, { capture:true });
     })();
