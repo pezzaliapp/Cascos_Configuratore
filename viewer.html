@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Documento</title>
+<style>
+  :root{ --ink:#eef2ff; --line:#243b7a; --bg:#0b1022 }
+  html,body{height:100%;margin:0;background:#0b1022;color:var(--ink)}
+  .top{position:sticky;top:0;z-index:5;display:flex;gap:8px;align-items:center;justify-content:space-between;
+       padding:12px;background:#0c1430cc;border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+  .btn{display:inline-flex;gap:8px;align-items:center;padding:9px 12px;border-radius:12px;text-decoration:none;
+       color:var(--ink);background:#0e193f;border:1px solid var(--line)}
+  iframe{border:0;width:100%;height:calc(100vh - 56px)}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div style="display:flex;gap:8px;align-items:center">
+      <a class="btn" id="back" href="./index.html">← Torna al configuratore</a>
+      <a class="btn" href="./index.html">🏠 Home</a>
+    </div>
+    <div id="name" style="font-size:12px;opacity:.8"></div>
+  </div>
+  <iframe id="pdf"></iframe>
+<script>
+  const u = new URLSearchParams(location.search).get('u') || '';
+  const abs = (()=>{ try{ return new URL(u, location.href).toString(); }catch(_){ return u; }})();
+  document.getElementById('pdf').src = abs;
+  document.getElementById('name').textContent = abs.split('/').pop();
+</script>
+</body>
+</html>
