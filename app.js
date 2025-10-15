@@ -1,11 +1,57 @@
-// app.js — v6.14
+// app.js — v6.16
 // Vehicle filter + auto-fill + per-model Arms PDFs (ARMS_FILES) + Manual page map
-// + i18n + share/csv/pdf/save + PWA + URL state restore (fix link baseless, robust fallback)
+// + i18n + share/csv/pdf/save + PWA + URL state restore
+// + iOS/PWA PDF wrapper con pulsante "← Torna alla App"
 
 (function () {
   'use strict';
 
-  // ------------------ helpers ------------------
+  // ================== iOS/PWA — PDF wrapper "Torna alla App" ==================
+  const IS_STANDALONE = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isPdfHref = (href) => !!href && /\.pdf($|[?#])/i.test(href);
+  const absUrl = (u) => { try { return new URL(u, location.href).toString(); } catch { return u; } };
+
+  function openPDFwithReturn(url) {
+    if (!IS_STANDALONE) { window.open(url, '_blank'); return; }
+    const html = `
+      <!DOCTYPE html><html lang="it"><head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+        <title>Documento PDF</title>
+        <style>
+          :root{ --bg:#0b1022; --bar:#111735; --ink:#eef2ff; --line:#1d2a55; --focus:#2dd4bf; }
+          html,body{height:100%}
+          body{margin:0;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+          .bar{background:var(--bar);border-bottom:1px solid var(--line);padding:10px env(safe-area-inset-right) 10px calc(12px + env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between}
+          .bar .title{font:15px system-ui, -apple-system, Segoe UI, Roboto, Arial}
+          .btn{background:#0e193f;border:1px solid var(--line);padding:8px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font:14px system-ui}
+          iframe{flex:1;border:0;width:100%}
+        </style>
+      </head>
+      <body>
+        <div class="bar">
+          <div class="title">📄 Documento</div>
+          <a class="btn" href="./index.html">← Torna alla App</a>
+        </div>
+        <iframe src="${url}" allow="fullscreen"></iframe>
+      </body></html>`;
+    const w = window.open('', '_blank');
+    if (w && w.document) { w.document.write(html); w.document.close(); }
+    else { location.href = url; } // estremo fallback
+  }
+
+  // Intercetta tutti i click su <a> verso PDF (solo in PWA)
+  document.addEventListener('click', (e) => {
+    const a = e.target && e.target.closest ? e.target.closest('a') : null;
+    if (!a || !IS_STANDALONE) return;
+    const href = a.getAttribute('href') || '';
+    if (isPdfHref(href)) {
+      e.preventDefault();
+      openPDFwithReturn(absUrl(href));
+    }
+  }, { capture:true });
+
+  // ================== helpers ==================
   const $  = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
   const curLang = () => document.documentElement.lang || 'it';
@@ -19,7 +65,7 @@
     );
   }
 
-  // ------------------ static docs ------------------
+  // ================== static docs ==================
   const PDF = {
     withbase:   './docs/scheda_con_pedana.pdf',
     baseless:   './docs/scheda_senza_pedana_2022.pdf',
@@ -28,7 +74,7 @@
     arms_general: './ARMS_FILES/MISURE_GENERALI_BRACCI_TIPO_VEICOLI.pdf'
   };
 
-  // ------------------ ARMS (misure bracci) ------------------
+  // ================== ARMS (misure bracci) ==================
   const ARMS_PATH = './ARMS_FILES/';
   const ARMS_FILES = {
     // --- con basamento / pedana ---
@@ -67,7 +113,7 @@
 
   const ARMS_PAGES = { 'C3.2': 7, 'C3.2 Comfort': 13, 'C3.5': 19 };
 
-  // ------------------ Schede commerciali per modello ------------------
+  // ================== Schede commerciali per modello ==================
   const SHEET_FILES = {
     withbase: {
       'C3.2':         './docs/scheda_C3.2_con_pedana.pdf',
@@ -102,22 +148,21 @@
     'C3.2S': 32, 'C3.5S': 36, 'C4S': 40, 'C5.5S': 44
   };
 
-  // ------------------ URL builders ------------------
+  // ================== URL builders ==================
   function buildSheetUrl(modelId, baseKind) {
     const hit = SHEET_FILES[baseKind]?.[modelId];
     if (hit) return hit;
 
-    // Prova varianti comuni del filename (utile se manca una entry esplicita)
+    // Prova varianti comuni del filename
     const base = baseKind === 'withbase' ? 'con_pedana' : 'senza_pedana';
     const candidates = [
       `./docs/scheda_${modelId}_${base}.pdf`,
       `./docs/scheda_${modelId.replaceAll('.', '_')}_${base}.pdf`,
       `./docs/scheda_${modelId.replaceAll('.', '')}_${base}.pdf`,
     ];
-    // restituisci la prima candidata (se non esiste, il browser mostrerà 404; in tal caso user usa i PDF generali)
     return candidates[0];
 
-    // Fallback manuale (se vuoi forzare sempre l’apertura di un PDF esistente)
+    // Fallback manuale (alternativa):
     // const pdf = baseKind === 'withbase' ? PDF.withbase : PDF.baseless;
     // return `${pdf}#search=${encodeURIComponent(modelId)}`;
   }
@@ -131,8 +176,8 @@
     return p ? `${PDF.manuale}#page=${p}` : `${PDF.manuale}#search=${encodeURIComponent(modelId)}`;
   }
 
-  // ------------------ i18n ------------------
-  const I18N = { /* (identico alla tua v6.13) */ 
+  // ================== i18n ==================
+  const I18N = { /* (identico alla tua v6.14) */ 
     it:{title:'🔧 CASCOS — Configuratore Sollevatori 2 Colonne',lang:'Lingua',save:'Salva',readme_btn:'Leggimi',install:'Installa',
       sec1:'1) Vincoli dell’officina',h:'Altezza utile soffitto (mm)',w:'Larghezza baia disponibile (mm)',
       conc:'Qualità calcestruzzo', conc_hint:'Per i modelli 3.2–5.5 t sono richiesti ancoraggi su calcestruzzo C20/25.',
@@ -217,7 +262,7 @@
   }
   $('#langSel')?.addEventListener('change', (e) => applyLang(e.target.value));
 
-  // ------------------ dataset ------------------
+  // ================== dataset ==================
   let MODELS = [];
 
   function withNoStore(u) {
@@ -229,7 +274,7 @@
   }
   const DATA_URL = withNoStore(window.MODELS_URL || './models.json');
 
-  // ------------------ URL state ------------------
+  // ================== URL state ==================
   const qp = new URLSearchParams(location.search);
   const preselect = { lang: qp.get('lang') || null, ids: (qp.get('ids') || '').split(',').map(s=>s.trim()).filter(Boolean) };
   const restoreInputs = { H:'inpH', W:'inpW', T:'inpThickness', C:'inpConcrete', P:'inpPower', B:'inpBase', GVW:'inpGVW', WB:'inpWB', V:'vehicleSel' };
@@ -257,7 +302,7 @@
       if (warnings) { const s = document.createElement('span'); s.className='tag bad'; s.textContent='Impossibile caricare i modelli (rete/cache/MIME).'; warnings.appendChild(s); }
     });
 
-  // ------------------ vehicle types / defaults / compat ------------------
+  // ================== vehicle types / defaults / compat ==================
   const VEHICLE_TYPES = {
     any:{ it:'Qualsiasi', en:'Any', es:'Cualquiera', fr:'Toutes', pt:'Qualquer' },
     city:{ it:'City / Utilitaria', en:'City / Small', es:'Ciudad / utilitario', fr:'Citadine', pt:'Citadino' },
@@ -301,7 +346,7 @@
     const lbl = $('#t_secVeh'); if (lbl) lbl.textContent = (I18N[curLang()]||I18N.it).secVeh;
   }
 
-  // ------------------ core logic ------------------
+  // ================== core logic ==================
   const rows = $('#rows'); const warnings = $('#warnings');
 
   function issuesFor(m) {
@@ -389,7 +434,7 @@
 
   function safeRender() { try { render(makeFiltered().slice(0, 40)); } catch (e) { console.error(e); } }
 
-  // ------------------ top actions ------------------
+  // ================== top actions ==================
   function selectedIds() { return $$('.pick:checked').map(i => i.dataset.id); }
   function buildQuery(extras) {
     const p = new URLSearchParams();
@@ -458,39 +503,69 @@
     a.click();
   });
 
-  // ------------------ single sheet / print ------------------
+  // ================== single sheet / print ==================
   function openSheet(m, L, silent = false) {
-    const css = `body{font:13px system-ui,Segoe UI,Roboto,Arial;margin:22px}
-h1{font-size:18px;margin:0 0 8px 0}
-table{width:100%;border-collapse:collapse;margin-top:6px}
-td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
+    const css = `body{font:13px system-ui,Segoe UI,Roboto,Arial;margin:0;background:#0b1022;color:#eef2ff}
+h1{font-size:18px;margin:0 0 8px 0;padding:14px 16px;background:#111735;border-bottom:1px solid #1d2a55}
+table{width:calc(100% - 32px);border-collapse:collapse;margin:12px 16px;background:#111735;border:1px solid #1d2a55;border-radius:10px;overflow:hidden}
+td,th{border:1px solid #1d2a55;padding:8px;text-align:left}
+a.btn{display:inline-block;background:#0e193f;border:1px solid #1d2a55;padding:6px 10px;border-radius:10px;color:#eef2ff;text-decoration:none;margin-right:6px}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#0f183b;border-bottom:1px solid #1d2a55;position:sticky;top:0}
+`;
     const armsStr = m.arms ? `${m.arms.type || ''} ${(m.arms.min_mm ?? '–')}–${(m.arms.max_mm ?? '–')} mm` : '–';
     const schedaUrl = buildSheetUrl(m.id, m.base === 'withbase' ? 'withbase' : 'baseless');
     const armsUrl = buildArmsUrl(m.id);
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${m.id} — CASCOS</title><style>${css}</style></head><body>
+
+    // Mini-wrapper per intercettare PDF anche dentro questa finestra
+    const pdfHelper = `
+<script>
+  (function(){
+    var IS_STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    function isPdf(h){ return /\\.pdf($|[?#])/i.test(h||''); }
+    function openWrap(u){
+      if(!IS_STANDALONE){ window.open(u,'_blank'); return; }
+      var html='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PDF</title>'+
+        '<style>body{margin:0;background:#0b1022;color:#eef2ff;display:flex;flex-direction:column;height:100vh} .bar{background:#111735;border-bottom:1px solid #1d2a55;padding:10px 16px;display:flex;justify-content:space-between;align-items:center} a.btn{background:#0e193f;border:1px solid #1d2a55;padding:8px 12px;border-radius:10px;color:#eef2ff;text-decoration:none} iframe{flex:1;border:0;width:100%}</style></head>'+
+        '<body><div class="bar"><div>📄 Documento</div><a class="btn" href="./index.html">← Torna alla App</a></div><iframe src="'+u+'"></iframe></body></html>';
+      var w=window.open('','_blank'); if(w&&w.document){ w.document.write(html); w.document.close(); } else { location.href=u; }
+    }
+    document.addEventListener('click', function(e){
+      var a=e.target.closest && e.target.closest('a'); if(!a) return;
+      var h=a.getAttribute('href')||''; if(isPdf(h)){ e.preventDefault(); openWrap(new URL(h, location.href).toString()); }
+    }, {capture:true});
+  })();
+</script>`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${m.id} — CASCOS</title><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>${css}</style></head><body>
+<div class="bar">
+  <div><a class="btn" href="./index.html">← Torna alla App</a></div>
+  <div style="opacity:.8">Scheda tecnica</div>
+</div>
 <h1>${m.id} — CASCOS</h1>
 <table>
 <tr><th>${L.th_cap || 'Portata'}</th><td>${m.portata || '-'} kg</td></tr>
 <tr><th>Interasse</th><td>${m.interasse || '-'} mm</td></tr>
 <tr><th>Larghezza</th><td>${m.larghezza || '-'} mm</td></tr>
 <tr><th>Altezza utile</th><td>${m.h_sotto_traversa || '-'} mm</td></tr>
-<tr><th>${L.th_arms || 'Bracci'}</th><td>${armsStr} — <a href="${armsUrl}" target="_blank">${L.arms_btn || '📐 Misure bracci'}</a></td></tr>
+<tr><th>${L.th_arms || 'Bracci'}</th><td>${armsStr} — <a class="btn" href="${armsUrl}" target="_blank" rel="noopener">${L.arms_btn || '📐 Misure bracci'}</a></td></tr>
 <tr><th>${L.th_power || 'Alimentazione'}</th><td>${(m.power || []).join(', ') || '-'}</td></tr>
 <tr><th>${(L.th_anchor || 'Ancoraggi').replace('<br>',' ')}</th><td>${m.anchors ? (m.anchors.qty + '× ' + m.anchors.type + ' — ' + m.anchors.concrete + ', ≥ ' + m.anchors.thickness_min_mm + ' mm') : '-'}</td></tr>
 <tr><th>Tipo</th><td>${m.base === 'withbase' ? (L.withbase || 'Con basamento') : (L.baseless || 'Senza basamento')}</td></tr>
 <tr><th>Documentazione</th><td>
-<a href="${schedaUrl}" target="_blank">${L.sheet_btn || 'Scheda'}</a> ·
-<a href="${PDF.fondazioni}" target="_blank">${L.fond_btn || 'Fondazioni'}</a> ·
-<a href="${PDF.arms_general}" target="_blank">${L.arms_general || '📐 Misure generali'}</a>
+<a class="btn" href="${schedaUrl}" target="_blank" rel="noopener">${L.sheet_btn || 'Scheda'}</a>
+<a class="btn" href="${PDF.fondazioni}" target="_blank" rel="noopener">${L.fond_btn || 'Fondazioni'}</a>
+<a class="btn" href="${PDF.arms_general}" target="_blank" rel="noopener">${L.arms_general || '📐 Misure generali'}</a>
 </td></tr>
 </table>
+${pdfHelper}
 <script>window.addEventListener('load',()=>{ ${silent ? '' : 'setTimeout(()=>print(),180);'} });</script>
 </body></html>`;
+
     const w = window.open('', '_blank'); if (!w) return;
     w.document.write(html); w.document.close();
   }
 
-  // ------------------ compute / reset ------------------
+  // ================== compute / reset ==================
   function calculate() {
     const L = I18N[curLang()] || I18N.it;
     if (warnings) {
@@ -509,14 +584,14 @@ td,th{border:1px solid #ccc;padding:6px;text-align:left}`;
     calculate();
   });
 
-  // ------------------ PWA (install + fallback iOS) ------------------
+  // ================== PWA (install + fallback iOS) ==================
   (function setupPWA() {
     const installBtn = document.getElementById('installBtn');
     let deferredPrompt = null;
     const showBtn = () => { if (installBtn) installBtn.hidden = false; };
     const hideBtn = () => { if (installBtn) installBtn.hidden = true; };
 
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isStandalone = IS_STANDALONE;
     if (isStandalone) hideBtn();
     window.addEventListener('appinstalled', () => hideBtn());
 
