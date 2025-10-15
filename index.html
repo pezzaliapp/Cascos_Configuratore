@@ -222,7 +222,7 @@
         <div class="row">
           <div>
             <label id="t_duty" for="inpDuty">Frequenza cicli/h</label>
-            <select id="inpDuty">
+            <select id="t_duty" id="inpDuty">
               <option value="6">Intermittente (≈6 mov/h)</option>
               <option value="10">Intensivo (≥10 mov/h)</option>
             </select>
@@ -328,7 +328,7 @@
     </div>
   </div>
 
-  <!-- Script modale + ritorno Home + gestione link PDF/esterni in PWA -->
+  <!-- Script modale + FAB + gestione link PDF/esterni in PWA -->
   <script>
     (function(){
       const modal = document.getElementById('legalModal');
@@ -337,8 +337,13 @@
       const okBtn = document.getElementById('legalOk');
       const langSel = document.getElementById('langSel');
       const fullLink = document.getElementById('legalFullLink');
+
       function currentLang(){ const l = document.documentElement.lang || (langSel && langSel.value) || 'it'; return ['it','en','es','fr'].includes(l) ? l : 'it'; }
-      function syncLegalLang(){ const lang = currentLang(); document.querySelectorAll('.modal .legal').forEach(el => { el.hidden = !el.classList.contains('lang-' + lang); }); if (fullLink) fullLink.href = 'LICENSE.html#' + lang; }
+      function syncLegalLang(){
+        const lang = currentLang();
+        document.querySelectorAll('.modal .legal').forEach(el => { el.hidden = !el.classList.contains('lang-' + lang); });
+        if (fullLink) fullLink.href = 'LICENSE.html#' + lang;
+      }
       function open(){ syncLegalLang(); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
       function close(){ modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
       openBtn && openBtn.addEventListener('click', open);
@@ -350,25 +355,35 @@
       const rows = document.getElementById('rows');
       rows && rows.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('a')) { e.stopPropagation(); } });
 
-      // ---- HOME FAB (solo quando l'app è installata) ----
+      // FAB Home solo in PWA
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       const homeFab = document.getElementById('homeFab');
       if (isStandalone && homeFab) homeFab.classList.add('show');
 
-      // ---- iOS PWA: apri PDF ed esterni fuori dall'app, così puoi tornare con "Fine" ----
+      // --- Routing PDF su viewer.html (così hai sempre il bottone "Torna") ---
       function isPdf(href){ return href && /\.pdf($|[?#])/i.test(href); }
       function isExternal(url){
         try{ const u = new URL(url, location.href); return u.origin !== location.origin; }catch{ return false; }
       }
+
       document.addEventListener('click', (e) => {
         const a = e.target.closest && e.target.closest('a');
         if (!a) return;
         const href = a.getAttribute('href') || '';
         if (!href) return;
+
         if (!isStandalone) return; // in browser normale non tocchiamo nulla
 
-        // Per PDF o link esterni: apri in una vista separata
-        if (isPdf(href) || isExternal(href)) {
+        // 1) PDF: instrada SEMPRE al viewer interno con topbar
+        if (isPdf(href)) {
+          e.preventDefault();
+          const abs = new URL(href, location.href).toString();
+          location.href = './viewer.html?u=' + encodeURIComponent(abs);
+          return;
+        }
+
+        // 2) Link esterni: apri fuori dall'app
+        if (isExternal(href)) {
           e.preventDefault();
           try { window.open(new URL(href, location.href).toString(), '_blank'); } catch { location.href = href; }
         }
